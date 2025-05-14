@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Receipt</title>
+    <style>
+        body { font-family: Helvetica, sans-serif; }
+        .header { text-align: center; }
+        .invoice-details, .payment-details { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        td, th { border: 1px solid #333; padding: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Payment Receipt</h2>
+        <p><strong>Invoice ID:</strong> {{ invoice.id }}</p>
+    </div>
+
+    <div class="invoice-details">
+        <p><strong>Amount:</strong> {{ invoice.amount }}</p>
+        <p><strong>Due Date:</strong> {{ invoice.due_date }}</p>
+        <p><strong>Status:</strong> {% if invoice.is_paid %}Paid{% else %}Unpaid{% endif %}</p>
+    </div>
+
+    <div class="payment-details">
+        <h4>Payments</h4>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+            {% for payment in invoice.payments.all %}
+            <tr>
+                <td>{{ payment.id }}</td>
+                <td>{{ payment.amount }}</td>
+                <td>{{ payment.date }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
