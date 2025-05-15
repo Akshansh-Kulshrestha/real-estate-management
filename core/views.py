@@ -9,30 +9,42 @@ from .serializers import *
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import logout
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User  
 
 class RegisterAPIView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token = Token.objects.get(user=user)
             return Response({
                 'message': 'User registered successfully.',
-                'token': token.key,
                 'user_id': user.id,
                 'username': user.username
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class LoginAPIView(ObtainAuthToken):
+
+class LoginAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        token = Token.objects.get(key=response.data['token'])
-        return Response({
-            'token': token.key,
-            'user_id': token.user_id,
-            'username': token.user.username
-        })
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user_id': user.id,
+                'username': user.username,
+            })
+        else:
+            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class LogoutAPIView(APIView):
     def post(self, request):
@@ -47,53 +59,87 @@ class DashboardView(APIView):
 
     def get(self, request):
         user = request.user
-        user_role = user.roles.first().name if user.roles.exists() else "N/A"
+
+        user_roles = list(user.roles.values_list("name", flat=True)) if hasattr(user, "roles") else []
+
+        try:
+            total_properties = Property.objects.filter(created_by=user).count()
+        except Exception:
+            total_properties = 0
+
+        try:
+            total_bookings = Booking.objects.filter(buyer__user=user).count()
+            pending_bookings = Booking.objects.filter(buyer__user=user, status='scheduled').count()
+        except Exception:
+            total_bookings = 0
+            pending_bookings = 0
+
+        try:
+            total_transactions = Transaction.objects.filter(buyer__user=user).count()
+        except Exception:
+            total_transactions = 0
+
+        try:
+            unread_messages = Message.objects.filter(recipient=user, is_read=False).count()
+        except Exception:
+            unread_messages = 0
+
+        try:
+            unread_notifications = Notification.objects.filter(recipient=user, is_read=False).count()
+        except Exception:
+            unread_notifications = 0
 
         data = {
             "username": user.username,
             "email": user.email,
-            "role": user_role,
-            "total_properties": Property.objects.filter(created_by=user).count(),
-            "total_bookings": Booking.objects.filter(buyer__user=user).count(),
-            "pending_bookings": Booking.objects.filter(buyer__user=user, status='scheduled').count(),
-            "total_transactions": Transaction.objects.filter(buyer__user=user).count(),
-            "unread_messages": Message.objects.filter(recipient=user, is_read=False).count(),
-            "unread_notifications": Notification.objects.filter(recipient=user, is_read=False).count(),
+            "role": user_roles,
+            "total_properties": total_properties,
+            "total_bookings": total_bookings,
+            "pending_bookings": pending_bookings,
+            "total_transactions": total_transactions,
+            "unread_messages": unread_messages,
+            "unread_notifications": unread_notifications,
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
 
 # Generic CRUD base class for reuse
 class BaseAPIView(APIView):
     model_class = None
     serializer_class = None
+    permission_classes = [IsAuthenticated]  # Secure all views by default
 
-    def get_object(self, pk):
+    def get_queryset(self, request):
+        # Default to returning all objects (can be overridden)
+        return self.model_class.objects.all()
+
+    def get_object(self, pk, request):
         try:
-            return self.model_class.objects.get(pk=pk)
+            return self.get_queryset(request).get(pk=pk)
         except self.model_class.DoesNotExist:
             return None
 
     def get(self, request, pk=None):
         if pk:
-            obj = self.get_object(pk)
+            obj = self.get_object(pk, request)
             if not obj:
                 return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
             serializer = self.serializer_class(obj)
         else:
-            obj = self.model_class.objects.all()
-            serializer = self.serializer_class(obj, many=True)
+            queryset = self.get_queryset(request)
+            serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(created_by=request.user)  # For models with `created_by`
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
-        obj = self.get_object(pk)
+        obj = self.get_object(pk, request)
         if not obj:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = self.serializer_class(obj, data=request.data)
@@ -103,57 +149,77 @@ class BaseAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        obj = self.get_object(pk)
+        obj = self.get_object(pk, request)
         if not obj:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 # Individual views for each model
 class RoleAPIView(BaseAPIView):
     model_class = Role
     serializer_class = RoleSerializer
-
+    def get_queryset(self, request):
+        return Role.objects.filter(created_by=request.user)
 class UserAPIView(BaseAPIView):
     model_class = User
     serializer_class = UserSerializer
+    def get_queryset(self, request):
+        return User.objects.filter(created_by=request.user)
 
 class AgentProfileAPIView(BaseAPIView):
     model_class = AgentProfile
     serializer_class = AgentProfileSerializer
+    def get_queryset(self, request):
+        return AgentProfile.objects.filter(created_by=request.user)
 
 class BuyerProfileAPIView(BaseAPIView):
     model_class = BuyerProfile
     serializer_class = BuyerProfileSerializer
+    def get_queryset(self, request):
+        return BuyerProfile.objects.filter(created_by=request.user)
 
 class TenantProfileAPIView(BaseAPIView):
     model_class = TenantProfile
     serializer_class = TenantProfileSerializer
+    def get_queryset(self, request):
+        return TenantProfile.objects.filter(created_by=request.user)
 
 class SellerProfileAPIView(BaseAPIView):
     model_class = SellerProfile
     serializer_class = SellerProfileSerializer
+    def get_queryset(self, request):
+        return SellerProfile.objects.filter(created_by=request.user)
 
 class PropertyTypeAPIView(BaseAPIView):
     model_class = PropertyType
     serializer_class = PropertyTypeSerializer
+    def get_queryset(self, request):
+            return PropertyType.objects.all()
 
 class LocationAPIView(BaseAPIView):
     model_class = Location
     serializer_class = LocationSerializer
+    def get_queryset(self, request):
+            return Location.objects.all()
 
 class AmenityAPIView(BaseAPIView):
     model_class = Amenity
     serializer_class = AmenitySerializer
+    def get_queryset(self, request):
+            return Amenity.objects.all()
 
 class PropertyAPIView(BaseAPIView):
     model_class = Property
     serializer_class = PropertySerializer
-
+    def get_queryset(self, request):
+            return Property.objects.all()
 class PropertyImageAPIView(BaseAPIView):
     model_class = PropertyImage
     serializer_class = PropertyImageSerializer
-
+    def get_queryset(self, request):
+        return PropertyImage.objects.all()
 
 # from django.shortcuts import render, get_object_or_404, redirect
 # from django.contrib.auth.decorators import login_required, permission_required

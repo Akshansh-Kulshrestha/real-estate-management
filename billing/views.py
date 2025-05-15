@@ -54,11 +54,15 @@ class BaseAPIView(APIView):
 class InvoiceAPIView(BaseAPIView):
     model_class = Invoice
     serializer_class = InvoiceSerializer
+    def get_queryset(self, request):
+        return Invoice.objects.filter(created_by=request.user)
 
 
 class PaymentAPIView(BaseAPIView):
     model_class = Payment
     serializer_class = PaymentSerializer
+    def get_queryset(self, request):
+        return Payment.objects.filter(created_by=request.user)
 
 
 # # billing/views.py
