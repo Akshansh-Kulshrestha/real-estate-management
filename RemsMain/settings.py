@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
 
+
 ]
 
 REST_FRAMEWORK = {
@@ -164,3 +165,6 @@ CHANNEL_LAYERS = {
         # Use Redis backend in production
     }
 }
+
+# For development (prints emails to console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

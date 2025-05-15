@@ -6,13 +6,70 @@ from booking.models import *
 from blog.models import *
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from django.contrib.auth import logout
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User  
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from rest_framework_simplejwt.settings import api_settings
+from datetime import timedelta
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
 
+User = get_user_model()
+
+class CustomPasswordResetConfirmView(APIView):
+    def post(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+
+            if not default_token_generator.check_token(user, token):
+                return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            new_password = request.data.get('new_password')
+            confirm_password = request.data.get('confirm_password')
+
+            if new_password != confirm_password:
+                return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(new_password)
+            user.save()
+
+            return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
+
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            return Response({'error': 'Invalid request.'}, status=status.HTTP_400_BAD_REQUEST)
+class ForgotPasswordAPIView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            user = User.objects.filter(email=email).first()
+            if not user:
+                return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+            token_generator = PasswordResetTokenGenerator()
+            token = token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            reset_link = request.build_absolute_uri(
+                reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token})
+            )
+
+            send_mail(
+                subject='Reset your password',
+                message=f'Click the link to reset your password: {reset_link}',
+                from_email='noreply@yourapp.com',
+                recipient_list=[user.email],
+            )
+
+            return Response({'message': 'Password reset link sent.'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
 class RegisterAPIView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -26,15 +83,22 @@ class RegisterAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+
 class LoginAPIView(APIView):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
+        remember_me = request.data.get('remember_me', False)
 
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user:
             refresh = RefreshToken.for_user(user)
+
+            if remember_me:
+                # Extend the access/refresh token lifetime
+                refresh.set_exp(lifetime=timedelta(days=30))
+                refresh.access_token.set_exp(lifetime=timedelta(days=1))
 
             return Response({
                 'refresh': str(refresh),
@@ -42,8 +106,7 @@ class LoginAPIView(APIView):
                 'user_id': user.id,
                 'username': user.username,
             })
-        else:
-            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutAPIView(APIView):
@@ -171,26 +234,31 @@ class UserAPIView(BaseAPIView):
 class AgentProfileAPIView(BaseAPIView):
     model_class = AgentProfile
     serializer_class = AgentProfileSerializer
+
     def get_queryset(self, request):
-        return AgentProfile.objects.filter(created_by=request.user)
+        if request.user.is_authenticated:
+            request.user.add_role('Agent')  # ✅ assign role and auto-create profile
+            return AgentProfile.objects.filter(user=request.user)
+        return AgentProfile.objects.none()
+
 
 class BuyerProfileAPIView(BaseAPIView):
     model_class = BuyerProfile
     serializer_class = BuyerProfileSerializer
     def get_queryset(self, request):
-        return BuyerProfile.objects.filter(created_by=request.user)
+        return BuyerProfile.objects.filter(user=request.user)
 
 class TenantProfileAPIView(BaseAPIView):
     model_class = TenantProfile
     serializer_class = TenantProfileSerializer
     def get_queryset(self, request):
-        return TenantProfile.objects.filter(created_by=request.user)
+        return TenantProfile.objects.filter(user=request.user)
 
 class SellerProfileAPIView(BaseAPIView):
     model_class = SellerProfile
     serializer_class = SellerProfileSerializer
     def get_queryset(self, request):
-        return SellerProfile.objects.filter(created_by=request.user)
+        return SellerProfile.objects.filter(user=request.user)
 
 class PropertyTypeAPIView(BaseAPIView):
     model_class = PropertyType

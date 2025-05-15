@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -5,9 +6,12 @@ from django.utils import timezone
 class Role(models.Model):
     name = models.CharField(max_length=100, unique=True)
     permissions = models.ManyToManyField('auth.Permission', blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='roles_created')
 
     def __str__(self):
         return self.name
+    
+
 
 
 # Abstract user
@@ -33,6 +37,7 @@ class AbstractCustomUser(AbstractUser):
 class User(AbstractCustomUser):
     roles = models.ManyToManyField(Role, related_name='users')
     phone = models.CharField(max_length=15, blank=True)
+    email = models.EmailField(unique=True)
     image = models.ImageField(upload_to='user/', blank=True, null=True)
 
     def __str__(self):
@@ -44,7 +49,7 @@ class User(AbstractCustomUser):
     def add_role(self, role_name):
         role, _ = Role.objects.get_or_create(name=role_name)
         self.roles.add(role)
-
+        
     def remove_role(self, role_name):
         role = Role.objects.filter(name=role_name).first()
         if role:
@@ -57,6 +62,8 @@ class AgentProfile(models.Model):
 
     def __str__(self):
         return f"Agent: {self.user.username} ({self.agent_id})"
+    
+    
 
 # Buyer Profile
 class BuyerProfile(models.Model):
