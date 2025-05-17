@@ -1,5 +1,106 @@
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Register</button>
-</form>
+{% extends "core/base.html" %}
+{% block register %}
+
+  <style>
+    .auth-box {
+      max-width: 400px;
+      margin: 80px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .auth-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .auth-box input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .auth-box button {
+      width: 100%;
+      padding: 10px;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .auth-box button:hover {
+      background: #084dbf;
+    }
+
+    .switch {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .switch a {
+      color: #0d6efd;
+      text-decoration: none;
+    }
+
+    .switch a:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+    <div class="auth-box">
+      <h2>Register</h2>
+ <form method="post">
+            {% csrf_token %}
+        
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+        
+            <div class="form-group">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+        
+            <div class="form-group">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+        
+            <div class="form-group" style="position: relative;">
+                {{ form.password1.label_tag }}
+                {{ form.password1 }}
+                {{ form.password1.errors }}
+                <i class="fa-solid fa-eye toggle-password" toggle-id="{{ form.password1.id_for_label }}"></i>
+            </div>
+        
+            <div class="form-group" style="position: relative;">
+                {{ form.password2.label_tag }}
+                {{ form.password2 }}
+                {{ form.password2.errors }}
+                <i class="fa-solid fa-eye toggle-password" toggle-id="{{ form.password2.id_for_label }}"></i>
+            </div>
+        
+            <button type="submit" class="btn btn-success">Register</button>
+        
+            <div class="text-center mt-3">
+                <p style="margin-top: 15px; color: #fff;">
+                    Already registered?
+                    <a href="{% url 'login' %}" style="color: #66ccff; text-decoration: none;">
+                        Login here
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
+{% endblock %}

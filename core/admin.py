@@ -86,7 +86,7 @@ class PropertyAdmin(admin.ModelAdmin):
     def price_per_sqft(self, obj):
         # Ensure both are of the same type (Decimal)
         if obj.area_sqft:
-            return Decimal(obj.price) / Decimal(obj.area_sqft)  # Convert both to Decimal
+            return Decimal(obj.price_max) / Decimal(obj.area_sqft)  # Convert both to Decimal
         return '-'
 
 

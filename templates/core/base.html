@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Real Estate Site</title>
+  <link rel="stylesheet" href="{% static 'styles.css'%}" />
+</head>
+<body>
+
+  <!-- 🔷 Navigation Bar -->
+  <header class="navbar">
+    <div class="logo">🏠 RealEstatePro</div>
+    <input type="text" class="search-bar" placeholder="Search properties..." />
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a href="#gallery">Gallery</a>
+      <div class="dropdown">
+        <a href="#">Profile ⬇</a>
+        <div class="dropdown-menu">
+          <a href="login.html">Login</a>
+          <a href="#">Register</a>
+          <a href="booking.html">My Bookings</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 🔷 Main Content -->
+  <main class="main-content">
+    <h1>Find Your Dream Property</h1>
+    <p>Welcome to RealEstatePro - Your Trusted Real Estate Partner</p>
+  </main>
+
+{% block login %}{% endblock  %}
+{% block register %}{% endblock register %}
+  <!-- 🔷 Footer -->
+  <footer class="footer">
+    <div class="footer-section">
+      <h3>Contact Info</h3>
+      <p>📍 123 Real Street, Mumbai</p>
+      <p>📞 +91 9876543210</p>
+      <p>📧 info@realestatepro.com</p>
+    </div>
+
+    <div class="footer-section">
+      <h3>Quick Links</h3>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h3>Follow Us</h3>
+      <a href="#">🌐 Facebook</a><br />
+      <a href="#">📷 Instagram</a><br />
+      <a href="#">🐦 Twitter</a>
+    </div>
+  </footer>
+
+</body>
+</html>

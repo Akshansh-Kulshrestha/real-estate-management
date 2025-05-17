@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Real Estate Site</title>
+  <link rel="stylesheet" href="{% static 'styles.css'%}" />
+  <style>
+  .slider-container {
+    width: 220px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slider-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+  }
+
+  .slide {
+    min-width: 220px;
+    box-sizing: border-box;
+    margin-right: 10px;
+  }
+
+  .slide img {
+    width: 200px;
+    display: block;
+  }
+
+  .slide p {
+    text-align: center;
+    margin-top: 5px;
+    font-weight: bold;
+  }
+
+  /* Navigation buttons */
+  .slider-btn {
+    position: absolute;
+    top: 40%;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+  }
+
+  .slider-btn.prev {
+    left: 0;
+  }
+
+  .slider-btn.next {
+    right: 0;
+  }
+</style>
+</head>
+<body>
+
+  <!-- 🔷 Navigation Bar -->
+  <header class="navbar">
+    <div class="logo">🏠 RealEstatePro</div>
+    <input type="text" class="search-bar" placeholder="Search properties..." />
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a href="#gallery">Gallery</a>
+      <div class="dropdown">
+        <a href="#">Profile ⬇</a>
+        <div class="dropdown-menu">
+          <a href="login.html">Login</a>
+          <a href="#">Register</a>
+          <a href="booking.html">My Bookings</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 🔷 Main Content -->
+  <main class="main-content">
+    <h1>Find Your Dream Property</h1>
+    <p>Welcome to RealEstatePro - Your Trusted Real Estate Partner</p>
+    <p>{{user.username}} 
+      {% for role in roles  %}
+      {{role.name}}</p>
+    {% endfor %}
+  </main>
+
+  <!-- 🔷 About Section -->
+  <section id="about" class="section">
+    <h2>About Us</h2>
+    <p>We help you find residential, commercial, and luxury properties across India.</p>
+  </section>
+
+  <!-- 🔷 Gallery Section -->
+  <section id="gallery" class="section gallery">
+    <h2>Property Gallery</h2>
+<div class="gallery-grid">
+  <div class="slider-container">
+    <button class="slider-btn prev">&#10094;</button>
+    <div class="slider-wrapper" id="sliderWrapper">
+      {% for img in image %}
+      <div class="slide">
+        <img src="{{ img.image.url }}" alt="Property Image" />
+      </div>
+      {% endfor %}
+    </div>
+    <button class="slider-btn next">&#10095;</button>
+
+    <!-- Title container, shows the current slide's title -->
+    <div id="slideTitle" style="text-align:center; margin-top:10px; font-weight:bold; text-align:left">
+      {% for pro  in pro_name %}
+          <a href="#" >{{pro.title}}</a><br>
+          ₹{{ pro.price_min }}{% if pro.price_min < 1 %} L{% else %} Cr{% endif %} - 
+          ₹{{ pro.price_max }}{% if pro.price_max < 1 %} L{% else %} Cr{% endif %}
+          <br><br>      
+      {% endfor %}
+    </div>
+  </div>
+</div>
+  </section>
+
+  <!-- 🔷 Contact & Map -->
+  <section id="contact" class="section">
+    <h2>Contact Us</h2>
+    <p>Visit our office or reach out via phone or email.</p>
+    <div class="map">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.840951937893!2d144.95373631531758!3d-37.8162797797517!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf5775400a5f7a84b!2sReal%20Estate%20Agency!5e0!3m2!1sen!2sin!4v1617162111425!5m2!1sen!2sin"
+        width="100%"
+        height="250"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy">
+      </iframe>
+    </div>
+  </section>
+
+  <!-- 🔷 Footer -->
+  <footer class="footer">
+    <div class="footer-section">
+      <h3>Contact Info</h3>
+      <p>📍 123 Real Street, Mumbai</p>
+      <p>📞 +91 9876543210</p>
+      <p>📧 info@realestatepro.com</p>
+    </div>
+
+    <div class="footer-section">
+      <h3>Quick Links</h3>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h3>Follow Us</h3>
+      <a href="#">🌐 Facebook</a><br />
+      <a href="#">📷 Instagram</a><br />
+      <a href="#">🐦 Twitter</a>
+    </div>
+  </footer>
+  <script>
+  const sliderWrapper = document.getElementById('sliderWrapper');
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentIndex = 0;
+
+  document.querySelector('.slider-btn.next').addEventListener('click', () => {
+    if (currentIndex < totalSlides - 1) {
+      currentIndex++;
+      sliderWrapper.style.transform = `translateX(-${220 * currentIndex}px)`;
+    }
+  });
+
+  document.querySelector('.slider-btn.prev').addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      sliderWrapper.style.transform = `translateX(-${220 * currentIndex}px)`;
+    }
+  });
+</script>
+
+</body>
+</html>

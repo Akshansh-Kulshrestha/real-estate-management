@@ -135,7 +135,8 @@ class Property(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField()
-    price = models.DecimalField(max_digits=12, decimal_places=2)
+    price_min = models.DecimalField(max_digits=12, decimal_places=2)
+    price_max = models.DecimalField(max_digits=12, decimal_places=2)
     area_sqft = models.FloatField()
     bedrooms = models.IntegerField()
     bathrooms = models.IntegerField()
@@ -147,7 +148,7 @@ class Property(models.Model):
     property_type = models.ForeignKey(PropertyType, on_delete=models.SET_NULL, null=True)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     amenities = models.ManyToManyField(Amenity, blank=True)
-    agent = models.ForeignKey('User', on_delete=models.CASCADE, limit_choices_to={'role': 'agent'})
+    agent = models.ForeignKey('User', on_delete=models.CASCADE, limit_choices_to={'roles__name': 'Agent'})
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     is_featured = models.BooleanField(default=False)
     date_posted = models.DateTimeField(default=timezone.now)
