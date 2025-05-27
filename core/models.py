@@ -1,7 +1,39 @@
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
+
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def _create_user(self, username, email, password, **extra_fields):
+        """
+        Create and save a User with the given username, email, and password.
+        """
+        if not email:
+            raise ValueError('The Email must be set')
+        email = self.normalize_email(email)
+        username = username or email.split('@')[0]
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, username=None, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(username, email, password, **extra_fields)
+
+    def create_superuser(self, username=None, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(username, email, password, **extra_fields)
 
 class Role(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -14,31 +46,37 @@ class Role(models.Model):
 
 
 
-# Abstract user
-class AbstractCustomUser(AbstractUser):
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
+# # Abstract user
+# class AbstractCustomUser(AbstractUser):
+#     created_at = models.DateTimeField(default=timezone.now)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-    created_by = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        limit_choices_to={'roles__name__in': ['superadmin', 'agent', 'seller', 'buyer', 'tenant', 'landlord', 'manager']},
-        related_name='created_users',
-    )
+#     created_by = models.ForeignKey(
+#         'self',
+#         on_delete=models.CASCADE,
+#         null=True,
+#         blank=True,
+#         limit_choices_to={'roles__name__in': ['superadmin', 'agent', 'seller', 'buyer', 'tenant', 'landlord', 'manager']},
+#         related_name='created_users',
+#     )
 
-    def __str__(self):
-        return self.username or self.email
-    class Meta:
-        abstract = True
+#     def __str__(self):
+#         return self.username or self.email
+#     class Meta:
+#         abstract = True
 
 # Main user
-class User(AbstractCustomUser):
-    roles = models.ManyToManyField(Role, related_name='users')
-    phone = models.CharField(max_length=15, blank=True)
+class User(AbstractUser):
+    objects = UserManager()
+
+    phone = models.CharField(max_length=10, blank=True)
     email = models.EmailField(unique=True)
     image = models.ImageField(upload_to='user/', blank=True, null=True)
+    city = models.CharField(max_length=15)
+    state = models.CharField(max_length=15)
+    address = models.CharField(max_length=100)
+    roles = models.ManyToManyField('Role', through='UserRole', related_name='users') 
+
 
     def __str__(self):
         return self.username or self.email
@@ -54,6 +92,16 @@ class User(AbstractCustomUser):
         role = Role.objects.filter(name=role_name).first()
         if role:
             self.roles.remove(role)
+
+class UserRole(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('user', 'role')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role.name}"
 
 # Agent Profile
 class AgentProfile(models.Model):
@@ -146,14 +194,16 @@ class Property(models.Model):
         ('furnished', 'Furnished'),
     ])
     property_type = models.ForeignKey(PropertyType, on_delete=models.SET_NULL, null=True)
+    Address = models.CharField(max_length=100)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     amenities = models.ManyToManyField(Amenity, blank=True)
-    agent = models.ForeignKey('User', on_delete=models.CASCADE, limit_choices_to={'roles__name': 'Agent'})
+    user = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'roles__name': ['Agent', 'Buyer', 'Admin' ]})
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     is_featured = models.BooleanField(default=False)
     date_posted = models.DateTimeField(default=timezone.now)
 
-    
+    buyer = models.ForeignKey(BuyerProfile, on_delete=models.CASCADE, blank=True, null=True, related_name='purchased_properties')
+    seller = models.ForeignKey(SellerProfile, on_delete=models.CASCADE, blank=True, null=True, related_name='sold_properties')
     class Meta:
         permissions = [
             ('can_approve_property', 'Can approve property'),
@@ -164,10 +214,10 @@ class Property(models.Model):
     def __str__(self):
         return self.title
     
- #Propert Image   
+#  Propert Image   
 class PropertyImage(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='property_images/')
+    image = models.FileField(upload_to='property_images/')  # using FileField instead of ImageField
 
     def __str__(self):
         return f"Image for {self.property.title}"

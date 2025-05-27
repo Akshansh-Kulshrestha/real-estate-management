@@ -56,11 +56,27 @@ urlpatterns = [
     path('register/', views. register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('edit-profile/<int:user_id>', views.edit_profile, name='edit_profile'),
 
     path('', views.dashboard, name='dashboard'),
+    path('admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('agents/add/', views.add_agent, name='add_agent'),
+    path('agents/edit/<int:user_id>/', views.edit_agent, name='edit_agent'),  # correct
+    path('agents/delete/<int:user_id>/', views.delete_agent, name='delete_agent'),
+
+    path('admin/properties/add/', views.add_property, name='add_property'),
+    path('admin/properties/edit/<int:pk>/', views.edit_property, name='edit_property'),
+    path('admin/properties/delete/<int:pk>/', views.delete_property, name='delete_property'),
+    path('admin/properties/approve/<int:pk>/', views.approve_property, name='approve_property'),
+
+
     path('properties/', views.property_list, name='property_list'),
     path('property/<int:pk>/', views.property_detail, name='property_detail'),
-    path('property/create/', views.create_property, name='create_property'),
+    path('property/location/', views.location_view, name='location_view'),
+    path('ajax/get-cities/', views.get_cities, name='get_cities'),
+    path('ajax/get-areas/', views.get_areas, name='get_areas'),
+    path('ajax/get-pincodes/', views.get_pincodes, name='get_pincodes'),
+
 
     path('profile/agent/', views.agent_profile, name='agent_profile'),
     path('profile/buyer/', views.buyer_profile, name='buyer_profile'),

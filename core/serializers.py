@@ -50,10 +50,10 @@ class AmenitySerializer(serializers.ModelSerializer):
         model = Amenity
         fields = ['id', 'name']
 
-class PropertyImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PropertyImage
-        fields = ['id', 'property', 'image']
+# class PropertyImageSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = PropertyImage
+#         fields = ['id', 'property', 'image']
 
 # --- Property Serializer --- #
 

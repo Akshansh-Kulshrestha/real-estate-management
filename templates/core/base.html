@@ -1,68 +1,322 @@
 {% load static %}
-<!DOCTYPE html>
-
+<!DOCTYPE html >
 <html lang="en">
+  
+<!-- Mirrored from admin.pixelstrap.net/admiro/template/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 17 May 2025 12:08:53 GMT -->
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Real Estate Site</title>
-  <link rel="stylesheet" href="{% static 'styles.css'%}" />
-</head>
-<body>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Admiro admin is super flexible, powerful, clean &amp; modern responsive bootstrap 5 admin template with unlimited possibilities."/>
+    <meta name="keywords" content="admin template, Admiro admin template, best javascript admin, dashboard template, bootstrap admin template, responsive admin template, web app"/>
+    <meta name="author" content="pixelstrap"/>
+    <title>Admiro - Premium Admin Template</title>
+    <!-- Favicon icon-->
+    <link rel="icon" href="{% static 'images/favicon.png'%}" type="image/x-icon"/>
+    <link rel="shortcut icon" href="{% static 'images/favicon.png'%}" type="image/x-icon"/>
+    <!-- Google font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com/"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,200;6..12,300;6..12,400;6..12,500;6..12,600;6..12,700;6..12,800;6..12,900;6..12,1000&amp;display=swap" rel="stylesheet"/>
+    <!-- Flag icon css -->
+    <link rel="stylesheet" href="{% static 'css/vendors/flag-icon.css'%}"/>
+    <!-- iconly-icon-->
+    <link rel="stylesheet" href="{% static 'css/iconly-icon.css'%}"/>
+    <link rel="stylesheet" href="{% static 'css/bulk-style.css'%}"/>
+    <!-- iconly-icon-->
+    <link rel="stylesheet" href="{% static 'css/themify.css'%}"/>
+    <!--fontawesome-->
+    <link rel="stylesheet" href="{% static 'css/fontawesome-min.css'%}"/>
+    <!-- Whether Icon css-->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/vendors/weather-icons/weather-icons.min.css'%}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/vendors/scrollbar.css'%}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/vendors/slick.css'%}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/vendors/slick-theme.css'%}"/>
+    <!-- App css -->
+    <link id="color" rel="stylesheet" href="{% static 'css/color-1.css'%}" media="screen"/>
 
-  <!-- 🔷 Navigation Bar -->
-  <header class="navbar">
-    <div class="logo">🏠 RealEstatePro</div>
-    <input type="text" class="search-bar" placeholder="Search properties..." />
-    <nav class="nav-links">
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
-      <a href="#gallery">Gallery</a>
-      <div class="dropdown">
-        <a href="#">Profile ⬇</a>
-        <div class="dropdown-menu">
-          <a href="login.html">Login</a>
-          <a href="#">Register</a>
-          <a href="booking.html">My Bookings</a>
+    <link rel="stylesheet" href="{% static 'css/style.css'%}"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Boxicons CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/css/iconly.css">
+
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+<script src="https://kit.fontawesome.com/99a870abbd.js" crossorigin="anonymous"></script>
+
+  </head>
+  <body>
+    <!-- page-wrapper Start-->
+    <!-- tap on top starts-->
+    <div class="tap-top"><i class="fa-solid fa-arrow-up"></i></div>
+    <!-- tap on tap ends-->
+    <!-- loader-->
+    <div class="loader-wrapper">
+      <div class="loader"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="page-wrapper compact-wrapper" id="pageWrapper"> 
+      <header class="page-header row">
+        <div class="logo-wrapper d-flex align-items-center col-auto"><a href="#"><img class="light-logo img-fluid" src="{% static 'images/logo/logo1.png'%}" alt="logo"/><img class="dark-logo img-fluid" src="{% static 'images/logo/logo-dark.png'%}" alt="logo"/></a><a class="close-btn toggle-sidebar" href="javascript:void(0)">
+<button id="toggleIcon1" style="border: none; background: none; padding: 0;">
+    {% if is_open %}
+        <i id="toggleIcon" class="fa-solid fa-arrow-left"></i>
+    {% else %}
+        <i id="toggleIcon" class="fa-solid fa-arrow-right"></i>
+    {% endif %}
+</button>           
+ </a></div>
+        <div class="page-main-header col">
+          <div class="header-left">
+            <form class="form-inline search-full col" action="#" method="get">
+              <div class="form-group w-100">
+                <div class="Typeahead Typeahead--twitterUsers">
+                  <div class="u-posRelative">
+                    <input class="demo-input Typeahead-input form-control-plaintext w-100" type="text" placeholder="Search Admiro .." name="q" title="" autofocus="autofocus"/>
+                    <div class="spinner-border Typeahead-spinner" role="status"><span class="sr-only">Loading...</span></div><i class="close-search" data-feather="x"></i>
+                  </div>
+                  <div class="Typeahead-menu"></div>
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+              </div>
+            </form>
+            <div class="form-group-header d-lg-block d-none">
+              <div class="Typeahead Typeahead--twitterUsers">
+                <div class="u-posRelative d-flex align-items-center"> 
+                  <input class="demo-input py-0 Typeahead-input form-control-plaintext w-100" type="text" placeholder="Type to Search..." name="q" title=""/><i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav-right">
+            <ul class="header-right"> 
+              <li class="custom-dropdown">
+                <div class="translate_wrapper">
+
+              </li>
+              <li class="custom-dropdown"><a href="javascript:void(0)">
+            <i class="fa-solid fa-bell"></i>    
+              </a><span class="badge rounded-pill badge-primary">1</span>
+                <div class="custom-menu notification-dropdown py-0 overflow-hidden">
+                  <h3 class="title bg-primary-light dropdown-title">Notification <span class="font-primary">View all</span></h3>
+                  <ul class="activity-timeline">
+                    <li class="d-flex align-items-start">
+                      <div class="activity-line"></div>
+                      <div class="activity-dot-primary"></div>
+                      <div class="flex-grow-1">
+                        <h6 class="f-w-600 font-primary">30-04-2024<span>Today</span><span class="circle-dot-primary float-end">
+                            <svg class="circle-color">
+                              <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#circle"></use>
+                            </svg></span></h6>
+                        <h5>Alice Goodwin</h5>
+                        <p class="mb-0">Fashion should be fun. It shouldn't be labelled intellectual.</p>
+                      </div>
+                    </li>
+
+                  </ul>
+                </div>
+              </li>
+
+
+
+              <li class="profile-nav custom-dropdown">
+                <div class="user-wrap">
+                  <div class="user-img"><img src="{{user.image.url}}" alt="user"/></div>
+                  <div class="user-content">
+                    <h6>{{user.username}}</h6>
+                      {% with user.roles.all|first as role %}
+                          {% if role %}
+                              <p class="mb-0">{{ role.name }}<i class="fa-solid fa-chevron-down"></i></p>
+                          {% endif %}
+                      {% endwith %}
+                  </div>
+                </div>
+                <div class="custom-menu overflow-hidden">
+                  <ul class="profile-body">
+                    <li class="d-flex"> 
+                      <svg class="svg-color">
+                        <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#Profile"></use>
+                      </svg><a class="ms-2" href="{%url 'edit_profile' user.id %}">Account</a>
+                    </li>
+                    <li class="d-flex"> 
+                      <svg class="svg-color">
+                        <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#Message"></use>
+                      </svg><a class="ms-2" href="letter-box.html">Inbox</a>
+                    </li>
+                    <li class="d-flex"> 
+                      <svg class="svg-color">
+                        <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#Document"></use>
+                      </svg><a class="ms-2" href="to-do.html">Task</a>
+                    </li>
+                    <li class="d-flex"> 
+                      <svg class="svg-color">
+                        <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#Login"></use>
+                      </svg><a class="ms-2" href="{%url 'login'%}">Log Out</a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
+      </header>
+      <!-- Page Body Start-->
+      <div class="page-body-wrapper"> 
+        <!-- Page sidebar start-->
+<aside class="page-sidebar"> 
+  <div class="left-arrow" id="left-arrow">
+    <i data-feather="arrow-left"></i>
+  </div>
+
+  <div class="main-sidebar" id="main-sidebar">
+    <ul class="sidebar-menu" id="simple-bar">
+      <li class="sidebar-list">
+        <a class="sidebar-link" href="{% url 'admin_dashboard' %}">
+          <i class="fa-solid fa-thumbtack"></i>
+          <h6>Dashboards</h6>
+        </a>
+      </li>
+      <li class="sidebar-list">
+        <a class="sidebar-link" href="#">
+          <i class="fa-solid fa-thumbtack"></i>
+          <h6>Properties</h6><i class="iconly-Arrow-Right-2 icli"></i></a>
+                <ul class="sidebar-submenu">
+                  <li> <a href="{% url 'property_list' %}">List</a></li>
+                  <li><a href="dashboard-02.html">Ecommerce </a></li>
+                  <li> <a href="dashboard-03.html">Education</a></li>
+                </ul>
+      </li>
+            <li class="sidebar-list">
+        <a class="sidebar-link" href="#">
+          <i class="fa-solid fa-thumbtack"></i>
+          <h6>Agents</h6><i class="iconly-Arrow-Right-2 icli"></i></a>
+                <ul class="sidebar-submenu">
+                  <li> <a href="{% url 'property_list' %}">List</a></li>
+                  <li><a href="dashboard-02.html">Ecommerce </a></li>
+                  <li> <a href="dashboard-03.html">Education</a></li>
+                </ul>
+      </li>
+            <li class="sidebar-list">
+        <a class="sidebar-link" href="#">
+          <i class="fa-solid fa-thumbtack"></i>
+          <h6>Invoices</h6><i class="iconly-Arrow-Right-2 icli"></i></a>
+                <ul class="sidebar-submenu">
+                  <li> <a href="{% url 'property_list' %}">List</a></li>
+                  <li><a href="dashboard-02.html">Ecommerce </a></li>
+                  <li> <a href="dashboard-03.html">Education</a></li>
+                </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="right-arrow" id="right-arrow">
+    <i data-feather="arrow-right"></i>
+  </div>
+</aside>
+
+
+        <!-- Page sidebar end-->
+{% comment %} block starts {% endcomment %}
+
+{% block index %}{% endblock index %}
+{% block user_profile %} {% endblock user_profile %}
+{% block adminIndex %} {% endblock adminIndex %}
+{% block add_agent %}{% endblock add_agent %}
+{% block edit_agent   %}{% endblock edit_agent   %}
+{% block add_property %}{% endblock add_property %}
+{% block edit_property %}{% endblock edit_property %}
+{% block edit_profile %}{% endblock edit_profile %}
+
+        <footer class="footer"> 
+          <div class="container-fluid">
+            <div class="row"> 
+              <div class="col-md-6 footer-copyright">
+                <p class="mb-0">Copyright 2024 © Admiro theme by pixelstrap.</p>
+              </div>
+              <div class="col-md-6">
+                <p class="float-end mb-0">Hand crafted &amp; made with
+                  <svg class="svg-color footer-icon">
+                    <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#heart"></use>
+                  </svg>
+                </p>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
-    </nav>
-  </header>
-
-  <!-- 🔷 Main Content -->
-  <main class="main-content">
-    <h1>Find Your Dream Property</h1>
-    <p>Welcome to RealEstatePro - Your Trusted Real Estate Partner</p>
-  </main>
-
-{% block login %}{% endblock  %}
-{% block register %}{% endblock register %}
-  <!-- 🔷 Footer -->
-  <footer class="footer">
-    <div class="footer-section">
-      <h3>Contact Info</h3>
-      <p>📍 123 Real Street, Mumbai</p>
-      <p>📞 +91 9876543210</p>
-      <p>📧 info@realestatepro.com</p>
     </div>
+    <!-- jquery-->
+    <script src="{% static 'js/vendors/jquery/jquery.min.js'%}"></script>
+    <!-- bootstrap js-->
+    <script src="{% static 'js/vendors/bootstrap/dist/js/bootstrap.bundle.min.js'%}" defer=""></script>
+    <script src="{% static 'js/vendors/bootstrap/dist/js/popper.min.js'%}" defer=""></script>
+    <!--fontawesome-->
+    <script src="{% static 'js/vendors/font-awesome/fontawesome-min.js'%}"></script>
+    <!-- feather-->
+    <script src="{% static 'js/vendors/feather-icon/feather.min.js'%}"></script>
+    <script src="{% static 'js/vendors/feather-icon/custom-script.js'%}"></script>
+    <!-- sidebar -->
+    <script src="{% static 'js/sidebar.js'%}"></script>
+    <!-- height_equal-->
+    <script src="{% static 'js/height-equal.js'%}"></script>
+    <!-- config-->
+    <script src="{% static 'js/config.js'%}"></script>
+    <!-- apex-->
+    <script src="{% static 'js/chart/apex-chart/apex-chart.js'%}"></script>
+    <script src="{% static 'js/chart/apex-chart/stock-prices.js'%}"></script>
+    <!-- scrollbar-->
+    <script src="{% static 'js/scrollbar/simplebar.js'%}"></script>
+    <script src="{% static 'js/scrollbar/custom.js'%}"></script>
+    <!-- slick-->
+    <script src="{% static 'js/slick/slick.min.js'%}"></script>
+    <script src="{% static 'js/slick/slick.js'%}"></script>
+    <!-- data_table-->
+    <script src="{% static 'js/js-datatables/datatables/jquery.dataTables.min.js'%}"></script>
+    <!-- page_datatable-->
+    <script src="{% static 'js/js-datatables/datatables/datatable.custom.js'%}"></script>
+    <!-- page_datatable1-->
+    <script src="{% static 'js/js-datatables/datatables/datatable.custom1.js'%}"></script>
+    <!-- page_datatable-->
+    <script src="{% static 'js/datatable/datatables/datatable.custom.js'%}"></script>
+    <!-- theme_customizer-->
+    {% comment %} <script src="{% static 'js/theme-customizer/customizer.js'%}"></script> {% endcomment %}
+    <!-- tilt-->
+    <script src="{% static 'js/animation/tilt/tilt.jquery.js'%}"></script>
+    <!-- page_tilt-->
+    <script src="{% static 'js/animation/tilt/tilt-custom.js'%}"></script>
+    <!-- dashboard_1-->
+    <script src="{% static 'js/dashboard/dashboard_1.js'%}"></script>
+    <!-- custom script -->
+    <script src="{% static 'js/script.js'%}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <div class="footer-section">
-      <h3>Quick Links</h3>
-      <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#gallery">Gallery</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </div>
+<script>
+  document.getElementById('toggleIcon1').addEventListener('click', function () {
+    const icon = document.getElementById('toggleIcon');
+    icon.classList.toggle('fa-arrow-left');
+    icon.classList.toggle('fa-arrow-right');
+  });
+</script>
 
-    <div class="footer-section">
-      <h3>Follow Us</h3>
-      <a href="#">🌐 Facebook</a><br />
-      <a href="#">📷 Instagram</a><br />
-      <a href="#">🐦 Twitter</a>
-    </div>
-  </footer>
+      <script>
+  $(document).ready(function() {
+    $('#amenities-select').select2({
+      placeholder: "Select amenities",
+      allowClear: true,
+      width: '100%'
+    });
+  });
+</script>
+  </body>
 
-</body>
+<!-- Mirrored from admin.pixelstrap.net/admiro/template/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 17 May 2025 12:09:59 GMT -->
 </html>

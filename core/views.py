@@ -292,13 +292,12 @@
 #---------------------------------------------------------------------------------------#
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required,user_passes_test
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from .models import *
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
-from .forms import RegisterForm, LoginForm
+from .forms import *
 from django.views import View
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
@@ -310,6 +309,12 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from django.views.decorators.csrf import csrf_protect
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Count
+from django.utils.timezone import now
+
 
 User = get_user_model()
 
@@ -373,26 +378,57 @@ class PasswordResetConfirmView(View):
             messages.error(request, "Invalid password reset request.")
             return redirect('forgot-password')
 
+@csrf_protect
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
+
         if form.is_valid():
-            user = form.save()
-            # role = Role.objects.get_or_create(name='buyer')[0]
-            # user.roles.add(role)
-            login(request, user)
+            form.save()
+            messages.success(request, 'Account created! You can now log in.')
             return redirect('login')
+        else:
+            print(form.errors)  # or log this properly
+            messages.error(request, 'There was an error in your form. Please correct it.')
     else:
-        form = RegisterForm()
+        initial_data= {'username': '',
+                        'email': '',
+                          'password1': '',
+                            'password2':'',
+                              'first_name' : '', 
+                              'last_name' : '',
+                              'phone':'',
+                              'state':'',
+                              'city':''
+                              }
+        form = RegisterForm(initial=initial_data)
+        
     return render(request, 'core/register.html', {'form': form})
 
+
 def login_view(request):
-    form = LoginForm(request, data=request.POST or None)
-    if form.is_valid():
-        user = form.get_user()
-        login(request, user)
-        return redirect('dashboard')
-    return render(request, 'core/login1.html', {'form': form})
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        username = request.POST['username']
+        password = request.POST['password']
+        remember_me = request.POST.get('remember_me')
+
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+
+            if not remember_me:
+                request.session.set_expiry(6000)  # Session expires after ~100 minutes
+
+            # Redirect based on user type
+            if user.is_superuser or user.is_staff:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('dashboard')  # Define your regular user dashboard URL name
+    else:
+        form = LoginForm()
+
+    return render(request, 'core/login.html', {'form': form})
 
 def logout_view(request):
     logout(request)
@@ -451,14 +487,185 @@ def add_property_to_sale(request, property_id):
 @login_required
 def dashboard(request):
     roles = request.user.roles.all()
-    image = PropertyImage.objects.all()
-    pro_name = Property.objects.all()
-    return render(request, 'core/index.html', {'username': request.user.username, 'roles': roles, 'image' : image, 'pro_name': pro_name})
+    property = Property.objects.prefetch_related('images').all()
+    print(property)
+    return render(request, 'core/index1.html', {'username': request.user.username, 'roles': roles, 'property' : property})
+
+
+def is_admin(user):
+    return user.is_superuser or user.roles.filter(name="superadmin").exists()
+
+@login_required
+@user_passes_test(is_admin)
+def admin_dashboard(request):
+    user=request.user
+    today = timezone.now().date()
+   
+    seven_days_ago = today - timedelta(days=7)
+
+    new_today = Property.objects.filter(date_posted__date=today).count()
+    new_last_7_days = Property.objects.filter(date_posted__date__gte=seven_days_ago).count()
+    latest_properties = Property.objects.all()  # Sorted by min to max
+    today = now().date()
+    agent = UserRole.objects.filter(role__name='Agent')
+    agent_user_ids = AgentProfile.objects.values_list('user_id', flat=True)
+    total_users = User.objects.exclude(is_superuser=True).exclude(id__in=agent_user_ids).count()
+    width_total_users = total_users * 10
+    total_properties= Property.objects.count()
+    width_total_properties= total_properties * 10
+    total_agents = AgentProfile.objects.count()
+    width_total_agents = total_agents * 10
+    total_properties_sold = Property.objects.filter(status='sold').count()
+    width_total_properties_sold = total_properties_sold * 10
+
+    
+
+    context = {
+        'agent': agent ,
+        'profile' : User.objects.filter(id=user.id),
+        'total_users': total_users, 
+        'width_total_users': width_total_users,
+        'total_properties': total_properties,
+        'width_total_properties': width_total_properties,
+        'total_agents': total_agents,
+        'width_total_agents': width_total_agents,
+        'total_properties_sold' : total_properties_sold,
+        'width_total_properties_sold' : width_total_properties_sold,
+        'current': timezone.now(),
+        'today': today,
+        'new_today': new_today,
+        'new_last_7_days': new_last_7_days,
+        'latest_properties': latest_properties,
+        
+    }
+    
+    return render(request, 'core/admin_dashboard.html', context)
+
+# Check for admin
+def is_admin(user):
+    return user.is_superuser  # or however you define admin
+
+#-----------Agent Actions----------------#
+
+@login_required
+@user_passes_test(is_admin)
+def add_agent(request):
+    agent = User.objects.filter(roles__name='Agent')
+    print(agent)
+    if request.method == 'POST':
+        form = AgentForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            user = form.save()
+            agent_role = get_object_or_404(Role, name='Agent')  # Get the Role, not UserRole
+            UserRole.objects.get_or_create(user=user, role=agent_role)
+            return redirect('admin_dashboard')
+    else:
+        form = AgentForm()
+    return render(request, 'core/agents/add_agent.html', {'form': form, 'agent':agent})
+
+@login_required
+@user_passes_test(is_admin)
+def edit_agent(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    agent = UserRole.objects.filter(role__name='Agent')
+
+    form = AgentForm(request.POST or None, request.FILES or None, instance=user)
+    if form.is_valid():
+        form.save()
+        return redirect('admin_dashboard')
+    return render(request, 'core/agents/edit_agent.html', {'form': form})
+
+@login_required
+@user_passes_test(is_admin)
+def delete_agent(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    return redirect('admin_dashboard')
+
+#-----------Property Actions----------------#
+
+@login_required
+@user_passes_test(is_admin)
+def add_property(request):
+    if request.method == 'POST':
+        form = PropertyForm(request.POST, request.FILES)
+        if form.is_valid():
+            property_obj = form.save()
+
+            # Save uploaded images
+            for img in request.FILES.getlist('images'):
+                PropertyImage.objects.create(property=property_obj, image=img)
+
+            messages.success(request, 'Property added successfully.')
+            return redirect('admin_dashboard')
+    else:
+        form = PropertyForm()
+
+    return render(request, 'core/properties/add_property.html', {
+        'form': form,
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+def edit_property(request, pk):
+    property_obj = get_object_or_404(Property, pk=pk)
+
+    if request.method == 'POST':
+        # Handle deletion of images
+        images_to_delete = request.POST.getlist('delete_images')
+        for img_id in images_to_delete:
+            PropertyImage.objects.filter(id=img_id, property=property_obj).delete()
+
+        form = PropertyForm(request.POST, request.FILES, instance=property_obj)
+        if form.is_valid():
+            form.save()
+
+            # Save newly uploaded images
+            for img in request.FILES.getlist('images'):
+                PropertyImage.objects.create(property=property_obj, image=img)
+
+            messages.success(request, 'Property updated successfully.')
+            return redirect('edit_property', pk=property_obj.pk)
+    else:
+        form = PropertyForm(instance=property_obj)
+
+    property_images = property_obj.images.all()
+
+    return render(request, 'core/properties/edit_property.html', {
+        'form': form,
+        'property': property_obj,
+        'images': property_images
+    })
+
+
+
+
+
+@login_required
+@user_passes_test(is_admin)
+def delete_property(request, pk):
+    property = get_object_or_404(Property, pk=pk)
+    property.delete()
+    return redirect('admin_dashboard')
+
+@login_required
+@user_passes_test(is_admin)
+def approve_property(request, pk):
+    property = get_object_or_404(Property, pk=pk)
+    property.is_featured = True
+    property.save()
+    messages.success(request, 'Property approved.')
+    return redirect('admin_dashboard')
+
+
+
 
 # PROPERTY LISTING
 @login_required
 def property_list(request):
-    properties = Property.objects.filter(status='available')
+    properties = Property.objects.all()
     return JsonResponse({"properties": [prop.title for prop in properties]})
 
 # SINGLE PROPERTY DETAIL
@@ -467,19 +674,33 @@ def property_detail(request, pk):
     prop = get_object_or_404(Property, pk=pk)
     return JsonResponse({
         "title": prop.title,
-        "price": float(prop.price),
+        "price_min": float(prop.price_min),
+        "price_max": float(prop.price_max),
         "location": str(prop.location),
         "agent": prop.agent.username
     })
 
-# PROPERTY POSTING (AGENT ONLY)
+
+
 @login_required
-@permission_required('core.add_property', raise_exception=True)
-def create_property(request):
+def edit_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
     if request.method == 'POST':
-        # Dummy implementation for frontend work
-        return HttpResponse("Property created (placeholder)")
-    return HttpResponse("Only POST allowed for creating properties")
+        form = UserForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            if request.user.is_superuser or request.user.is_staff:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('dashboard')
+        print(form)
+        # Don't reassign form here — just fall through to rendering with the same form
+    else:
+        form = UserForm(instance=user)
+
+    return render(request, 'core/edit-profile.html', {'form': form})
+
 
 # PROFILE VIEWS
 @login_required
@@ -516,3 +737,35 @@ def featured_properties(request):
 def list_amenities(request):
     amenities = Amenity.objects.all()
     return JsonResponse({"amenities": [a.name for a in amenities]})
+
+def property_gallery_view(request, property_id):
+    property = Property.objects.get(id=property_id)
+    images = property.images.all()  # ✅ this gets ALL images for this property
+
+    return render(request, 'your_template.html', {
+        'image': images,        # ← this must be a QuerySet, not a single image
+        'pro_name': [property]  # ← since your template expects a list here
+    })
+
+
+def location_view(request):
+    location = Location.objects.all()
+    return JsonResponse({"location": [a.name for a in location]})   
+        
+def get_cities(request):
+    state = request.GET.get('state')
+    cities = Location.objects.filter(state=state).values_list('city', flat=True).distinct()
+    return JsonResponse({'cities': list(cities)})
+
+def get_areas(request):
+    state = request.GET.get('state')
+    city = request.GET.get('city')
+    areas = Location.objects.filter(state=state, city=city).values_list('area', flat=True).distinct()
+    return JsonResponse({'areas': list(areas)})
+
+def get_pincodes(request):
+    state = request.GET.get('state')
+    city = request.GET.get('city')
+    area = request.GET.get('area')
+    pincodes = Location.objects.filter(state=state, city=city, area=area).values_list('pincode', flat=True).distinct()
+    return JsonResponse({'pincodes': list(pincodes)})

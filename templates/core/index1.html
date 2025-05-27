@@ -1,0 +1,123 @@
+{% extends "core/base.html" %}
+{% block index %}
+
+  <style>
+  .slider-container {
+    width: 220px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slider-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+  }
+
+  .slide {
+    min-width: 220px;
+    box-sizing: border-box;
+    margin-right: 10px;
+  }
+
+  .slide img {
+    width: 200px;
+    display: block;
+  }
+
+  .slide p {
+    text-align: center;
+    margin-top: 5px;
+    font-weight: bold;
+  }
+
+  /* Navigation buttons */
+  .slider-btn {
+    position: absolute;
+    top: 40%;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+  }
+
+  .slider-btn.prev {
+    left: 0;
+  }
+
+  .slider-btn.next {
+    right: 0;
+  }
+</style>
+
+  <!-- 🔷 Main Content -->
+  <main class="main-content">
+    <h1>Find Your Dream Property</h1>
+    <p>Welcome to RealEstatePro - Your Trusted Real Estate Partner</p>
+    <p>{{user.username}} 
+      {% for role in roles  %}
+      {{role.name}}</p>
+    {% endfor %}
+  </main>
+
+  <!-- 🔷 About Section -->
+  <section id="about" class="section">
+    <h2>About Us</h2>
+    <p>We help you find residential, commercial, and luxury properties across India.</p>
+  </section>
+
+  <!-- 🔷 Gallery Section -->
+  <section id="gallery" class="section gallery">
+    <h2>Property Gallery</h2>
+<div class="gallery-grid">
+  <div class="slider-container">
+    <button class="slider-btn prev">&#10094;</button>
+    <div class="slider-wrapper" id="sliderWrapper">
+      {% for img in image %}
+      <div class="slide">
+        <img src="{{ img.image.url }}" alt="Property Image" />
+      </div>
+      {% endfor %}
+    </div>
+    <button class="slider-btn next">&#10095;</button>
+
+    <!-- Title container, shows the current slide's title -->
+    <div id="slideTitle" style="text-align:center; margin-top:10px; font-weight:bold; text-align:left">
+      {% for pro  in property %}
+          <a href="#" >{{pro.title}}</a><br>
+          ₹{{ pro.price_min }}{% if pro.price_min < 1 %} L{% else %} Cr{% endif %} - 
+          ₹{{ pro.price_max }}{% if pro.price_max < 1 %} L{% else %} Cr{% endif %}
+          <br><br>      
+      {% endfor %}
+    </div>
+  </div>
+</div>
+  </section>
+
+
+
+
+  <script>
+  const sliderWrapper = document.getElementById('sliderWrapper');
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentIndex = 0;
+
+  document.querySelector('.slider-btn.next').addEventListener('click', () => {
+    if (currentIndex < totalSlides - 1) {
+      currentIndex++;
+      sliderWrapper.style.transform = `translateX(-${220 * currentIndex}px)`;
+    }
+  });
+
+  document.querySelector('.slider-btn.prev').addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      sliderWrapper.style.transform = `translateX(-${220 * currentIndex}px)`;
+    }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% block add_agent %}
+ <div class="page-body">
+          <div class="container-fluid">
+            <div class="page-title">
+              <div class="row">
+                <div class="col-sm-6 col-12"> 
+                  <h2>Agent Profile</h2>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Container-fluid starts-->
+          <div class="container-fluid">
+            <div class="edit-profile">
+              <div class="row">
+                <div class="col-xl-12">
+                  <div class="card">
+
+                  <form class="card" method="POST" id="propertyForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="card-header card-no-border pb-0">
+                      <h3 class="card-title mb-0">Add New Agent</h3>
+                      
+
+                      
+                      <div class="card-options"><a class="card-options-collapse" href="#" data-bs-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a><a class="card-options-remove" href="#" data-bs-toggle="card-remove"><i class="fe fe-x"></i></a></div>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+
+ 
+                        <div class="col-sm-6 col-md-3">
+                          <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input class="form-control" id="username" type="text" name="{{form.username.name}}" value="" required="" placeholder="Username">
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                          <div class="mb-3">
+                            <label class="form-label">Email address</label>
+                            <input class="form-control" type="email" placeholder="Email" name="{{form.email.name}}" value="" required="" id="email"/>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                          <div class="mb-3">
+                            <label class="form-label">First Name</label>
+                            <input class="form-control" type="text" placeholder="First Name" name="{{form.first_name.name}}" value="" id="first_name"/>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                          <div class="mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input class="form-control" type="text" placeholder="Last Name" name="{{form.last_name.name}}" value="" id="last_name"/>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                          <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input class="form-control" type="text" placeholder="Phone" name="{{form.phone.name}}" value="" id="phone"/>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <input class="form-control" type="text" placeholder="Address" name="{{form.address.name}}" value="" id="{{address}}"/>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                          <div class="mb-3">
+                            <label class="form-label">City</label>
+                            <input class="form-control" type="text" placeholder="City" name="{{form.city.name}}" value="" id="city"/>
+                          </div>
+                        </div>
+                        <div class="col-md-2">
+                          <div class="mb-3">
+                            <label class="form-label">State</label>
+                            <input class="form-control" type="text" placeholder="State" name="{{form.state.name}}" value="" id="state"/>
+                          </div>
+                        </div>
+   
+                      </div>
+                    </div>
+                    <div class="card-footer text-end">
+                      <button class="btn btn-primary" type="submit">Add Agent Profile</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+{% endblock %}

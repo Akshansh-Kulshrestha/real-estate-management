@@ -34,25 +34,30 @@ class GroupedPermissionForm(forms.ModelForm):
 
         self.fields['permissions'].choices = choices
 
-class RoleAdmin(admin.ModelAdmin):
-    form = GroupedPermissionForm
-    filter_horizontal = ()  # Remove filter widget
+from django.contrib import admin
+from .models import User, Role, UserRole
 
-    class Media:
-        js = ('admin/js/role_permissions.js',)
-admin.site.register(Role, RoleAdmin)
+class UserRoleInline(admin.TabularInline):
+    model = UserRole
+    extra = 1
+
+@admin.register(UserRole)
+class UserRoleAdmin(admin.ModelAdmin):
+    list_display = ('user', 'role', 'created_at')
+    list_filter = ('role', 'created_at')
+    search_fields = ('user__username', 'role__name')
 
 
-class CustomUserAdmin(BaseUserAdmin):
-    model = User
-    fieldsets = BaseUserAdmin.fieldsets + (
-        ("Custom Fields", {
-            'fields': ('phone', 'image', 'roles'),
-        }),
-    )
-    filter_horizontal = ('roles',)
+class CustomUserAdmin(admin.ModelAdmin):
+    inlines = [UserRoleInline]
+    list_display = ('username', 'email', 'get_roles')
+
+    def get_roles(self, obj):
+        return ", ".join([role.name for role in obj.roles.all()])
+    get_roles.short_description = 'Roles'
 
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(Role)
 
 class AgentProfileAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'get_phone')
@@ -74,13 +79,13 @@ class BuyerProfileAdmin(admin.ModelAdmin):
 admin.site.register(BuyerProfile, BuyerProfileAdmin)  # Register BuyerProfile once
 
 
-class PropertyImageInline(admin.TabularInline):
-    model = PropertyImage
-    extra = 1  # Display at least one empty form to add images
+# class PropertyImageInline(admin.TabularInline):
+#     model = PropertyImage
+#     extra = 1  # Display at least one empty form to add images
 
 class PropertyAdmin(admin.ModelAdmin):
     list_display = ('location', 'area_sqft', 'property_type', 'price_per_sqft')
-    inlines =[PropertyImageInline]
+    # inlines =[PropertyImageInline]
     
     @admin.display(description='Price / Sqft')
     def price_per_sqft(self, obj):
@@ -111,5 +116,4 @@ admin.site.register(SellerProfile, SellerProfileAdmin)
 # Register other models
 admin.site.register(Amenity)
 admin.site.register(Location)
-admin.site.register(PropertyImage)
 admin.site.register(PropertyType)

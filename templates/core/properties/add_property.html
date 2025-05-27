@@ -1,0 +1,240 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block add_property %}
+
+ <div class="page-body">
+          <div class="container-fluid">
+            <div class="page-title">
+              <div class="row">
+                <div class="col-sm-6 col-12"> 
+                  <h2>Add New Property</h2>
+
+              </div>
+            </div>
+          </div>
+          <div class="container-fluid">
+            <div class="edit-profile">
+              <div class="row">
+                <div class="col-xl-12">
+                  <div class="card">
+
+                  <form class="card" method="POST" id="propertyForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="card-header card-no-border pb-0">
+                      <h3 class="card-title mb-0">Add New Property</h3>
+                      
+
+                      
+                      <div class="card-options"><a class="card-options-collapse" href="#" data-bs-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a><a class="card-options-remove" href="#" data-bs-toggle="card-remove"><i class="fe fe-x"></i></a></div>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+
+
+
+                        <div class="col-sm-6 col-md-3">
+                          <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input class="form-control" id="username" type="text" name="{{form.title.name}}" value="{{title}}" required="" placeholder="Title">
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                          <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <input class="form-control" type="text" placeholder="text" name="{{form.description.name}}" value="" required="" id="email"></input>
+                          </div>
+                        </div>
+                          <div class="col-sm-5 col-md-5">
+                            <div class="mb-3">
+                              <label class="form-label">Price Range</label>
+                              <div class="d-flex gap-2">
+                                <input
+                                  class="form-control"
+                                  type="number"
+                                  name="{{ form.price_min.name }}"
+                                  value="{{ form.price_min.value|default_if_none:'' }}"
+                                  placeholder="Min Price"
+                                  id="{{ form.price_min.id_for_label }}"
+                                />
+                                <span class="align-self-center">-</span>
+                                <input
+                                  class="form-control"
+                                  type="number"
+                                  name="{{ form.price_max.name }}"
+                                  value="{{ form.price_max.value|default_if_none:'' }}"
+                                  placeholder="Max Price"
+                                  id="{{ form.price_max.id_for_label }}"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                        <div class="col-sm-2 col-md-2">
+                          <div class="mb-3">
+                            <label class="form-label">Area Square ft.</label>
+                            <input class="form-control" type="text" placeholder="Last Name" name="{{form.area_sqft.name}}" value="" id="area_sqft"/>
+                          </div>
+                        </div>
+                        <div class="col-md-1">
+                          <div class="mb-3">
+                            <label class="form-label">Bedroom</label>
+                            <input class="form-control" type="text" placeholder="Bedrooms" name="{{form.bedrooms.name}}" value="" id="{{bedrooms}}"/>
+                          </div>
+                        </div>
+                        <div class="col-md-1">
+                          <div class="mb-3">
+                            <label class="form-label">Bathroom</label>
+                            <input class="form-control" type="text" placeholder="bathrooms" name="{{form.bathrooms.name}}" value="" id="{{bathrooms}}"/>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                          <div class="mb-3">
+                            <label for="furnishing" class="form-label">Furnishing</label>
+                            <select class="form-control" name="{{ form.furnishing.name }}" id="{{ form.furnishing.id_for_label }}">
+                              {% for val, label in form.furnishing.field.choices %}
+                                <option value="{{ val }}" {% if form.furnishing.value == val %}selected{% endif %}>
+                                  {{ label }}
+                                </option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        </div>
+                          <div class="col-sm-6 col-md-4">
+                          <div class="mb-3">
+                              <div class="d-flex justify-content-between align-items-center">
+                                <label for="amenities" class="form-label mb-2">Amenities</label>
+                              </div>
+
+                              <select class="form-control" name="{{ form.amenities.name }}" id="amenities-select" multiple>
+                                {% for val, label in form.amenities.field.choices %}
+                                  <option value="{{ val }}" {% if val in form.amenities.value %}selected{% endif %}>
+                                    {{ label }}
+                                  </option>
+                                {% endfor %}
+                              </select>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                        <div class="mb-3">
+                          <label for="property_type" class="form-label">Property Type</label>
+                          <select class="form-control" name="{{ form.property_type.name }}" id="{{ form.property_type.id_for_label }}">
+                            {% for val, label in form.property_type.field.choices %}
+                              <option value="{{ val }}" {% if form.property_type.value == val %}selected{% endif %}>
+                                {{ label }}
+                              </option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+
+                        <div class="col-sm-6 col-md-4">
+                          <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <input class="form-control" type="text" placeholder="Address" name="{{form.Address.name}}" value="" id="Address"/>
+                          </div>
+                        </div>
+                      <div class="col-sm-6 col-md-4">
+                        <div class="mb-3">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <label for="location-select" class="form-label mb-1">Location</label>
+                          </div>
+                          <select class="form-control" name="{{ form.location.name }}" id="location-select">
+                            <option value="">Select a location</option>
+                            {% for val, label in form.location.field.choices %}
+                              <option value="{{ val }}" {% if val == form.location.value %}selected{% endif %}>
+                                {{ label }}
+                              </option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+
+                        <div class="col-sm-6 col-md-3">
+                        <div class="mb-3">
+                        <label for="property_images" class="form-label d-flex justify-content-between align-items-center">
+                          Add Property Images
+                        </label>
+                        <input type="file" name="images" multiple id="imageUploadInput" />
+                      </div>
+                      </div>
+                      <div id="preview-container" class="mb-3 d-flex flex-wrap gap-2"></div>
+
+
+                      
+                      
+                      
+                      {% comment %} <div class="col-md-12">
+                        </div> {% endcomment %}
+                      </div>
+                    </div>
+                    <div class="card-footer text-end">
+                      <button class="btn btn-primary" type="submit">Save</button>
+
+                      <a href="{% url 'admin_dashboard' %}" class="btn btn-danger">Cancel</a>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('propertyForm');
+            const goBackBtn = document.getElementById('goBackBtn');
+            
+            // Save initial form state
+            const initialFormData = new FormData(form);
+    const getFormSnapshot = (formData) => {
+      let snapshot = '';
+      for (const [key, value] of formData.entries()) {
+        snapshot += `${key}:${value}|`;
+      }
+      return snapshot;
+    };
+    const initialSnapshot = getFormSnapshot(initialFormData);
+
+    goBackBtn.addEventListener('click', function (e) {
+      const currentSnapshot = getFormSnapshot(new FormData(form));
+      if (currentSnapshot !== initialSnapshot) {
+        const confirmLeave = confirm("You have unsaved changes. Do you still want to leave?");
+        if (!confirmLeave) {
+          e.preventDefault();  // Stop the navigation
+        }
+      }
+      // else allow normal navigation
+    });
+  });
+
+document.getElementById('imageUploadInput').addEventListener('change', function(event) {
+    const previewContainer = document.getElementById('preview-container');
+    previewContainer.innerHTML = '';  // Clear old previews
+
+    Array.from(event.target.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.width = '100px';
+            img.style.height = 'auto';
+            img.style.border = '1px solid #ccc';
+            img.style.borderRadius = '4px';
+            previewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+  $(document).ready(function() {
+    $('#location-select').select2({
+      placeholder: "Search by area, city, state or pincode",
+      allowClear: true,
+      width: '100%'
+    });
+  });
+</script>
+
+
+
+{% endblock %}
