@@ -49,6 +49,9 @@
 
     <!-- Boxicons CDN -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zuramai/mazer@docs/demo/assets/compiled/css/iconly.css">
+<!-- Dropzone CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css" rel="stylesheet">
+
 
 <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 <script src="https://kit.fontawesome.com/99a870abbd.js" crossorigin="anonymous"></script>
@@ -65,7 +68,7 @@
     </div>
     <div class="page-wrapper compact-wrapper" id="pageWrapper"> 
       <header class="page-header row">
-        <div class="logo-wrapper d-flex align-items-center col-auto"><a href="#"><img class="light-logo img-fluid" src="{% static 'images/logo/logo1.png'%}" alt="logo"/><img class="dark-logo img-fluid" src="{% static 'images/logo/logo-dark.png'%}" alt="logo"/></a><a class="close-btn toggle-sidebar" href="javascript:void(0)">
+        <div class="logo-wrapper d-flex align-items-center col-auto"><a href="#"><img class="light-logo img-fluid" src="{% static 'images/logo4.png'%}" alt="logo"/><img class="dark-logo img-fluid" src="{% static 'images/logo/logo-dark.png'%}" alt="logo"/></a><a class="close-btn toggle-sidebar" href="javascript:void(0)">
 <button id="toggleIcon1" style="border: none; background: none; padding: 0;">
     {% if is_open %}
         <i id="toggleIcon" class="fa-solid fa-arrow-left"></i>
@@ -129,7 +132,13 @@
 
               <li class="profile-nav custom-dropdown">
                 <div class="user-wrap">
-                  <div class="user-img"><img src="{{user.image.url}}" alt="user"/></div>
+                  <div class="user-img">
+                  {% if user.image %}
+                    <img src="{{ user.image.url }}" alt="user">
+                  {% else %}
+                    <img src="{% static 'images/download.png' %}" alt="default user">
+                  {% endif %}
+                  </div>
                   <div class="user-content">
                     <h6>{{user.username}}</h6>
                       {% with user.roles.all|first as role %}
@@ -144,7 +153,10 @@
                     <li class="d-flex"> 
                       <svg class="svg-color">
                         <use href="https://admin.pixelstrap.net/admiro/assets/svg/iconly-sprite.svg#Profile"></use>
-                      </svg><a class="ms-2" href="{%url 'edit_profile' user.id %}">Account</a>
+                      </svg>
+                      {% if user.is_authenticated %}
+                        <a href="{% url 'edit_profile' user.id %}">Account</a>
+                      {% endif %}
                     </li>
                     <li class="d-flex"> 
                       <svg class="svg-color">
@@ -226,8 +238,13 @@
         <!-- Page sidebar end-->
 {% comment %} block starts {% endcomment %}
 
+{% block password_reset %}{% endblock %}
+{% block password_reset_complete %}{% endblock %}
+{% block password_reset_confirm %}{% endblock %}
+{% block password_reset_done %}{% endblock %}
+
 {% block index %}{% endblock index %}
-{% block user_profile %} {% endblock user_profile %}
+{% block property_list %} {% endblock property_list %}
 {% block adminIndex %} {% endblock adminIndex %}
 {% block add_agent %}{% endblock add_agent %}
 {% block edit_agent   %}{% endblock edit_agent   %}

@@ -85,7 +85,7 @@
 
     <!-- Title container, shows the current slide's title -->
     <div id="slideTitle" style="text-align:center; margin-top:10px; font-weight:bold; text-align:left">
-      {% for pro  in property %}
+      {% for pro  in properties %}
           <a href="#" >{{pro.title}}</a><br>
           ₹{{ pro.price_min }}{% if pro.price_min < 1 %} L{% else %} Cr{% endif %} - 
           ₹{{ pro.price_max }}{% if pro.price_max < 1 %} L{% else %} Cr{% endif %}

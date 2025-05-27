@@ -1,0 +1,129 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load currency_filter %}
+
+{% block property_list %}
+<style>
+  body1 {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    padding: 40px;
+  }
+
+  .card1 {
+    background-color: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+    margin-bottom: 30px;
+  }
+
+  .card1 img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+  }
+
+  .card-content1 {
+    padding: 16px;
+  }
+
+  .price1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .title1 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 4px;
+    color: #000;
+  }
+
+  .subtitle1 {
+    font-size: 14px;
+    color: #777;
+    margin-top: 2px;
+  }
+
+  .details1 {
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+  }
+
+  .footer1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+  }
+
+  .seller-info1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .seller-info1 img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  .seller-name1 {
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+
+  .contact-btn1 {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 9999px;
+    cursor: pointer;
+  }
+
+  .contact-btn1:hover {
+    background-color: #a7f3d0;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="page-title mb-4">
+    <h2>Properties</h2>
+  </div>
+
+  <div class="row">
+    {% for pro in properties %}
+    <div class="col-md-4 col-lg-3 col-xl-3">
+      <div class="card1">
+      <a href="#">  <img src="{% static 'images/images.webp' %}" alt="Property Image" /> </a>
+        <div class="card-content1">
+          <div class="price1">{{ pro.price_min|inr_format }} - {{ pro.price_max|inr_format }}</div>
+          <a href="#"><div class="title1">{{ pro.title }}</div></a>
+          <div class="subtitle1">{{ pro.property_type }}</div>
+          <div class="details1">{{ pro.property_type }} • {{ pro.location }}</div>
+          <div class="footer1">
+            <div class="seller-info1">
+              <img src="{% static 'images/logo/logo1.png' %}" alt="Seller Logo" />
+              <div class="seller-name1">Abhiyant infrab...</div>
+            </div>
+            <button class="contact-btn1">Contact</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

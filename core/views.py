@@ -299,7 +299,6 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
 from .forms import *
 from django.views import View
-from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode
@@ -314,69 +313,26 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Count
 from django.utils.timezone import now
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.models import User
+from django.urls import reverse_lazy
+from django import forms
 
 
 User = get_user_model()
 
-class ForgotPasswordView(View):
-    def get(self, request):
-        return render(request, 'auth/forgot_password.html')
-
-    def post(self, request):
-        email = request.POST.get('email')
-        user = User.objects.filter(email=email).first()
-
-        if not user:
-            messages.error(request, "User with this email does not exist.")
-            return render(request, 'auth/forgot_password.html')
-
-        token_generator = PasswordResetTokenGenerator()
-        token = token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-        reset_link = request.build_absolute_uri(
-            reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token})
-        )
-
-        send_mail(
-            subject='Reset your password',
-            message=f'Click the link to reset your password: {reset_link}',
-            from_email='noreply@yourapp.com',
-            recipient_list=[user.email],
-        )
-
-        messages.success(request, 'Password reset link sent to your email.')
-        return redirect('forgot-password')
+# views.py
 
 
-class PasswordResetConfirmView(View):
-    def get(self, request, uidb64, token):
-        return render(request, 'auth/reset_password.html', {'uidb64': uidb64, 'token': token})
 
-    def post(self, request, uidb64, token):
-        try:
-            uid = urlsafe_base64_decode(uidb64).decode()
-            user = User.objects.get(pk=uid)
 
-            if not default_token_generator.check_token(user, token):
-                messages.error(request, "Invalid or expired token.")
-                return redirect('forgot-password')
-
-            new_password = request.POST.get('new_password')
-            confirm_password = request.POST.get('confirm_password')
-
-            if new_password != confirm_password:
-                messages.error(request, "Passwords do not match.")
-                return render(request, 'auth/reset_password.html', {'uidb64': uidb64, 'token': token})
-
-            user.set_password(new_password)
-            user.save()
-            messages.success(request, "Password reset successful. You can now log in.")
-            return redirect('login')
-
-        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
-            messages.error(request, "Invalid password reset request.")
-            return redirect('forgot-password')
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'auth/password_reset.html'
+    email_template_name = 'registration/password_reset_email.html'
+    subject_template_name = 'registration/password_reset_subject.txt'
+    form_class = CustomPasswordResetForm
+    success_url = '/home/password_reset/done/'
 
 @csrf_protect
 def register_view(request):
@@ -666,7 +622,7 @@ def approve_property(request, pk):
 @login_required
 def property_list(request):
     properties = Property.objects.all()
-    return JsonResponse({"properties": [prop.title for prop in properties]})
+    return render(request, 'core/properties/property_list.html', {'properties': properties})
 
 # SINGLE PROPERTY DETAIL
 @login_required
@@ -701,6 +657,19 @@ def edit_profile(request, user_id):
 
     return render(request, 'core/edit-profile.html', {'form': form})
 
+@login_required
+def upload_profile_picture(request):
+    if request.method == 'POST' and 'image' in request.FILES:
+        user = request.user
+        user.image = request.FILES['image']
+        user.save()
+    return redirect('edit_profile')
+
+@login_required
+def remove_profile_picture(request):
+    user = request.user
+    user.image.delete(save=True)  # Deletes the image file too
+    return redirect('edit_profile')
 
 # PROFILE VIEWS
 @login_required

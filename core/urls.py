@@ -49,14 +49,23 @@
 
 from django.urls import path
 from . import views
+from .views import CustomPasswordResetView
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
-    path('reset-password/<uidb64>/<token>/', views.PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+  path('password_reset/', CustomPasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='auth/password_reset_done.html'), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='auth/password_reset_confirm.html'), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='auth/password_reset_complete.html'), name='password_reset_complete'),
     path('register/', views. register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('edit-profile/<int:user_id>', views.edit_profile, name='edit_profile'),
+    path('upload-profile-picture/', views.upload_profile_picture, name='upload_profile_picture'),
+    path('remove-profile-picture/', views.remove_profile_picture, name='remove_profile_picture'),
 
     path('', views.dashboard, name='dashboard'),
     path('admin/', views.admin_dashboard, name='admin_dashboard'),

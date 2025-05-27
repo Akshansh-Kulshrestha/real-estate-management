@@ -1,7 +1,42 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block edit_profile %}
+<style>
+  .profile-img-hover {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+  }
 
+  .profile-img-hover img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+  }
+
+  .profile-img-hover:hover img {
+    opacity: 0.6;
+  }
+
+  .profile-img-hover .hover-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 12px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .profile-img-hover:hover .hover-overlay {
+    opacity: 1;
+  }
+</style>
 
         <div class="page-body">
           <div class="container-fluid">
@@ -10,13 +45,7 @@
                 <div class="col-sm-6 col-12"> 
                   <h2>Edit Profile</h2>
                 </div>
-                <div class="col-sm-6 col-12">
-                  <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="index.html"><i class="iconly-Home icli svg-color"></i></a></li>
-                    <li class="breadcrumb-item">Users</li>
-                    <li class="breadcrumb-item active">Edit Profile</li>
-                  </ol>
-                </div>
+
               </div>
             </div>
           </div>
@@ -32,22 +61,65 @@
                     </div>
                     <div class="card-body">
                       <form>
-                        <div class="row mb-2">
-                          <div class="profile-title">
-                            <div class="d-flex gap-3">                       <img class="img-70 rounded-circle" alt="Profile Photo" src="{{user.image.url}}"/>
-                              <div class="flex-grow-1">
-                                <h3 class="mb-1">{{user.first_name}} {{user.last_name}}</h3>
-                                <p>{{user.email}}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <div class="row mb-2">
+<div class="row mb-2">
+  <div class="profile-title">
+    <div class="d-flex gap-3 align-items-center">
+      <div class="text-center position-relative" style="width: 100px;">
+
+        {% if user.image %}
+          <!-- Profile Image -->
+          
+          <!-- Dropdown for changing/removing -->
+<a class="w-100 text-decoration-none" href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+  <div class="profile-img-hover">
+    <img class="img-80 rounded-circle mb-1" alt="Profile Photo" src="{{ user.image.url }}" />
+    <div class="hover-overlay">Change</div>
+  </div>
+</a>
+          <ul class="dropdown-menu" aria-labelledby="profileDropdown">
+            <li>
+              <a class="dropdown-item" href="#" onclick="document.getElementById('uploadInput').click(); return false;">
+                Change Image
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item text-danger" href="{% url 'remove_profile_picture' %}">
+                Remove Image
+              </a>
+            </li>
+          </ul>
+        {% else %}
+          <!-- Default Avatar Placeholder with Add Link -->
+          <div class="img-80 rounded-circle d-flex align-items-center justify-content-center bg-light text-muted mb-1 mx-auto"
+               style="width: 80px; height: 80px; font-size: 10px; border: 1px solid #ccc; cursor: pointer;"
+               onclick="document.getElementById('uploadInput').click();">
+            <span class="text-center">
+              Add<br>Profile<br>Picture
+            </span>
+          </div>
+        {% endif %}
+
+        <!-- Hidden file input -->
+        <input type="file" id="uploadInput" name="image" style="display: none;" onchange="document.getElementById('uploadForm').submit();">
+      </div>
+
+      <!-- User Info -->
+      <div class="flex-grow-1">
+        <h3 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h3>
+        <p class="mb-0">{{ user.email }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
                         <div class="mb-3">
-                                <p>Username: {{user.username}}</p>
-                                <p>Phone: {{user.phone}}</p>
-                                <p>Address: {{user.address}}</p>
-                                <p>City: {{user.city}}</p>
-                                <p>State: {{user.state}}</p>
+                                <P style="font-size: 18px; font-weight: bold">Username: <span style="font-size: 18px; font-weight: 300;"> {{ user.username }}</span></p>
+                                <p style="font-size: 18px; font-weight: bold;">Phone: <span style="font-size: 18px; font-weight: 300;"> {{user.phone}}</span></p>
+                                <p style="font-size: 18px; font-weight: bold;">Address: <span style="font-size: 18px; font-weight: 300;">{{user.address}}</span></p>
+                                <p style="font-size: 18px; font-weight: bold;">City: <span style="font-size: 18px; font-weight: 300;"> {{user.city}}</span></p>
+                                <p style="font-size: 18px; font-weight: bold;">State: <span style="font-size: 18px; font-weight: 300;"> {{user.state}}</span></p>
 
                         </div>
                       </form>
@@ -119,6 +191,8 @@
                     </div>
                     <div class="card-footer text-end">
                       <button class="btn btn-primary" type="submit">Update Profile</button>
+                      {% comment %} <a class="btn btn-secondary" href="{% url 'password_reset'%}">Reset Password</a> {% endcomment %}
+
                     </div>
                   </form>
                 </div>

@@ -207,24 +207,79 @@
     });
   });
 
-document.getElementById('imageUploadInput').addEventListener('change', function(event) {
+  document.getElementById('imageUploadInput').addEventListener('change', function(event) {
     const previewContainer = document.getElementById('preview-container');
     previewContainer.innerHTML = '';  // Clear old previews
 
-    Array.from(event.target.files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = e => {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.width = '100px';
-            img.style.height = 'auto';
-            img.style.border = '1px solid #ccc';
-            img.style.borderRadius = '4px';
-            previewContainer.appendChild(img);
-        };
-        reader.readAsDataURL(file);
+    // Create a DataTransfer object to simulate FileList for input field
+    const dataTransfer = new DataTransfer();
+
+    Array.from(event.target.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        // Create wrapper
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('position-relative');
+        wrapper.style.display = 'inline-block';
+
+        // Create image
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.width = '100px';
+        img.style.height = 'auto';
+        img.style.border = '1px solid #ccc';
+        img.style.borderRadius = '4px';
+        img.style.marginRight = '8px';
+
+        // Create remove button
+        const removeBtn = document.createElement('span');
+        removeBtn.innerHTML = '&times;';
+        removeBtn.style.position = 'absolute';
+        removeBtn.style.top = '0';
+        removeBtn.style.right = '5px';
+        removeBtn.style.background = '#ff4d4f';
+        removeBtn.style.color = 'white';
+        removeBtn.style.borderRadius = '50%';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.style.padding = '2px 6px';
+        removeBtn.style.fontSize = '16px';
+        removeBtn.title = "Remove";
+
+        // Append image and button to wrapper
+        wrapper.appendChild(img);
+        wrapper.appendChild(removeBtn);
+        previewContainer.appendChild(wrapper);
+
+        // Keep track of files in dataTransfer object
+        dataTransfer.items.add(file);
+
+        // Remove file when button clicked
+        removeBtn.addEventListener('click', () => {
+          wrapper.remove();
+
+          // Remove from DataTransfer
+          const files = Array.from(dataTransfer.files);
+          const newDT = new DataTransfer();
+          files.forEach((f, i) => {
+            if (i !== index) newDT.items.add(f);
+          });
+
+          // Replace the original input's files
+          document.getElementById('imageUploadInput').files = newDT.files;
+
+          // Re-render preview (recursive safety)
+          const changeEvent = new Event('change');
+          document.getElementById('imageUploadInput').dispatchEvent(changeEvent);
+        });
+      };
+      reader.readAsDataURL(file);
     });
-});
+
+    // Update input field with the new files
+    setTimeout(() => {
+      document.getElementById('imageUploadInput').files = dataTransfer.files;
+    }, 100);
+  });
 
   $(document).ready(function() {
     $('#location-select').select2({

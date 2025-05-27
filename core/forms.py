@@ -1,7 +1,16 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm 
 from .models import *
+from django.contrib.auth.forms import PasswordResetForm
 
+class CustomPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter your registered email',
+            'autocomplete': 'email'
+        })
 class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'password'}))
     new_password1 = forms.CharField(label="Reset Password", widget=forms.PasswordInput(attrs={'placeholder': 'password'}))
