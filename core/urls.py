@@ -82,6 +82,7 @@ urlpatterns = [
     path('properties/', views.property_list, name='property_list'),
     path('property/<int:pk>/', views.property_detail, name='property_detail'),
     path('property/location/', views.location_view, name='location_view'),
+    path('add/nearby', views.add_nearby, name='nearby-add'),
     path('ajax/get-cities/', views.get_cities, name='get_cities'),
     path('ajax/get-areas/', views.get_areas, name='get_areas'),
     path('ajax/get-pincodes/', views.get_pincodes, name='get_pincodes'),

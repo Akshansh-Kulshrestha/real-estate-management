@@ -1,12 +1,12 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block edit_property %}
-        <div class="page-body">
+     <div class="page-body">
           <div class="container-fluid">
             <div class="page-title">
               <div class="row">
                 <div class="col-sm-6 col-12"> 
-                  <h2>Edit Property</h2>
+                  <h2>Add New Property</h2>
 
               </div>
             </div>
@@ -20,7 +20,7 @@
                   <form class="card" method="POST" id="propertyForm" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="card-header card-no-border pb-0">
-                      <h3 class="card-title mb-0">Edit Property</h3>
+                      <h3 class="card-title mb-0">Add New Property</h3>
                       
 
                       
@@ -28,23 +28,13 @@
                     </div>
                     <div class="card-body">
                       <div class="row">
-                      <div class="mb-3 d-flex flex-wrap gap-3">
-                        {% for img in images %}
-                          <div class="text-center">
-                            <img src="{{ img.image.url }}" alt="Property Image" width="100" class="mb-1" />
-                            <div>
-                              <input type="checkbox" name="delete_images" value="{{ img.id }}" id="delete_{{ img.id }}">
-                              <label for="delete_{{ img.id }}">Delete</label>
-                            </div>
-                          </div>
-                        {% endfor %}
-                      </div>
+
 
 
                         <div class="col-sm-6 col-md-3">
                           <div class="mb-3">
                             <label class="form-label">Title</label>
-                            <input class="form-control" id="username" type="text" name="{{form.title.name}}" value="{{form.title.value}}" required="" placeholder="Username">
+                            <input class="form-control" id="username" type="text" name="{{form.title.name}}" value="{{form.title.value}}" required="" placeholder="Title">
                           </div>
                         </div>
                         <div class="col-sm-6 col-md-4">
@@ -136,13 +126,58 @@
                         </div>
                       </div>
 
+                      <div class="col-sm-6 col-md-3">
+                        <div class="mb-3">
+                          <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                          <select class="form-control" name="{{ form.status.name }}" id="{{ form.status.id_for_label }}">
+                            {% for val, label in form.status.field.choices %}
+                              <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="col-sm-6 col-md-2">
+                        <div class="mb-3 form-check" style="padding-top: 38px;">
+                          <input class="form-check-input" type="checkbox" name="{{ form.is_featured.name }}" id="{{ form.is_featured.id_for_label }}"
+                            {% if form.is_featured.value %}checked{% endif %}>
+                          <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">Featured</label>
+                        </div>
+                      </div>
+
+                      <div class="col-sm-6 col-md-6">
+                        <div class="mb-3">
+                          <label for="{{ form.video_url.id_for_label }}" class="form-label">Video URL</label>
+                          <input class="form-control" type="url" name="{{ form.video_url.name }}" id="{{ form.video_url.id_for_label }}" 
+                            value="{{ form.video_url.value|default_if_none:'' }}" placeholder="https://example.com/video">
+                        </div>
+                      </div>
+
+                      <div class="col-sm-6 col-md-6">
+                        <div class="mb-3">
+                          <label for="{{ form.highlights.id_for_label }}" class="form-label">Highlights</label>
+                          <textarea class="form-control" name="{{ form.highlights.name }}" value={{form.highlights.value}} id="{{ form.highlights.id_for_label }}" rows="3" placeholder="Key features or highlights...">{{ form.highlights.value|default_if_none:'' }}</textarea>
+                        </div>
+                      </div>
+
+                      <div class="col-sm-6 col-md-4">
+                        <div class="mb-3">
+                          <label for="{{ form.listing_type.id_for_label }}" class="form-label">Listing Type</label>
+                          <select class="form-control" name="{{ form.listing_type.name }}" id="{{ form.listing_type.id_for_label }}">
+                            {% for val, label in form.listing_type.field.choices %}
+                              <option value="{{ val }}" {% if form.listing_type.value == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+
                         <div class="col-sm-6 col-md-4">
                           <div class="mb-3">
                             <label class="form-label">Address</label>
                             <input class="form-control" type="text" placeholder="Address" name="{{form.Address.name}}" value="{{form.Address.value}}" id="Address"/>
                           </div>
                         </div>
-                        <div class="col-sm-6 col-md-4">
+                      <div class="col-sm-6 col-md-4">
                         <div class="mb-3">
                           <div class="d-flex justify-content-between align-items-center">
                             <label for="location-select" class="form-label mb-1">Location</label>
@@ -157,6 +192,50 @@
                           </select>
                         </div>
                       </div>
+
+                          <div class="col-md-3 mb-3">
+                            <label for="{{ form.nearby.id_for_label }}">Nearby</label>
+                            
+                            <!-- Trigger Modal -->
+                            <button type="button" id="openNearbyModal" class="btn btn-outline-primary btn-sm ms-2">
+                              ADD
+                            </button>
+
+                            <!-- Input field or dropdown -->
+                            <input type="text"
+                                  name="{{ form.nearby.name }}"
+                                  id="{{ form.nearby.id_for_label }}"
+                                  class="form-control"
+                                  placeholder="Nearby landmark, school, mall...">
+                          </div>
+
+                          <!-- Modal -->
+                          <div class="modal fade" id="nearbyModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                              <div class="modal-content" id="nearbyModalContent">
+                                <!-- AJAX-loaded content will appear here -->
+                              </div>
+                            </div>
+                          </div>
+
+                        {% if request.user.is_superuser %}
+                          <div class="col-sm-6 col-md-4">
+                            <div class="mb-3">
+                              <label class="form-label" for="{{ form.owner.id_for_label }}">Owner (Agent or Seller)</label>
+                                                  <select class="form-control" name="{{ form.owner.name }}" id="owner-select">
+                                                    <option value="">Owner</option>
+                                                    {% for val, label in form.owner.field.choices %}
+                                                      <option value="{{ val }}" {% if val == form.owner.value %}selected{% endif %}>
+                                                        {{ label }}
+                                                      </option>
+                                                    {% endfor %}
+                                                  </select>
+                              {% if form.owner.errors %}
+                                <div class="text-danger">{{ form.owner.errors }}</div>
+                              {% endif %}
+                            </div>
+                          </div>
+                        {% endif %}
                         <div class="col-sm-6 col-md-3">
                         <div class="mb-3">
                         <label for="property_images" class="form-label d-flex justify-content-between align-items-center">
@@ -175,7 +254,7 @@
                         </div> {% endcomment %}
                       </div>
                     </div>
-                    <div class="card-footer text-end">
+                     <div class="card-footer text-end">
                       <button class="btn btn-secondary" type="submit">Save</button>
                       <a href="{% url 'admin_dashboard' %}" class="btn btn-primary" id="goBackBtn">
                         Update
@@ -188,6 +267,7 @@
             </div>
           </div>
         </div>
+      </div>
         
         <script>
           document.addEventListener('DOMContentLoaded', function () {
@@ -243,7 +323,51 @@ document.getElementById('imageUploadInput').addEventListener('change', function(
       width: '100%'
     });
   });
+
+  $(document).ready(function() {
+    $('#amenities-select').select2({
+      placeholder: "Select amenities",
+      allowClear: true,
+      width: '100%'
+    });
+  });
+
+  // Load modal form
+  $('#openNearbyModal').click(function () {
+    $.get("{% url 'nearby-add' %}", function (data) {
+      $('#nearbyModalContent').html(data);
+      $('#nearbyModal').modal('show');
+    });
+  });
+
+  // Submit form via AJAX
+  $(document).on('submit', '#addNearbyForm', function (e) {
+    e.preventDefault();
+    $.post("{% url 'nearby-add' %}", $(this).serialize(), function (response) {
+      if (response.success) {
+        // Optionally update the nearby input with the new value
+        $('#{{ form.nearby.id_for_label }}').val(response.name);
+        $('#nearbyModal').modal('hide');
+      } else {
+        // Redisplay form with errors
+        $.get("{% url 'nearby-add' %}", function (data) {
+          $('#nearbyModalContent').html(data);
+        });
+      }
+    });
+  });
+
+  $.get("{% url 'nearby-add' %}?property_id=1", function (data) {
+    $('#nearbyModalContent').html(data);
+    $('#nearbyModal').modal('show');
+});
 </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
 
 
 {% endblock %}

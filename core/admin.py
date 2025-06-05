@@ -79,23 +79,59 @@ class BuyerProfileAdmin(admin.ModelAdmin):
 admin.site.register(BuyerProfile, BuyerProfileAdmin)  # Register BuyerProfile once
 
 
-# class PropertyImageInline(admin.TabularInline):
-#     model = PropertyImage
-#     extra = 1  # Display at least one empty form to add images
+# Inline for PropertyImage
+class PropertyImageInline(admin.TabularInline):
+    model = PropertyImage
+    extra = 1  # Number of empty forms to show
+    fields = ('image',)
+    readonly_fields = ('image',)
 
+# Inline for Nearby Places
+class NearbyPlaceInline(admin.TabularInline):
+    model = NearbyPlace
+    extra = 1
+
+# Admin for Property
+@admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ('location', 'area_sqft', 'property_type', 'price_per_sqft')
-    # inlines =[PropertyImageInline]
-    
-    @admin.display(description='Price / Sqft')
-    def price_per_sqft(self, obj):
-        # Ensure both are of the same type (Decimal)
-        if obj.area_sqft:
-            return Decimal(obj.price_max) / Decimal(obj.area_sqft)  # Convert both to Decimal
-        return '-'
+    list_display = ('title', 'location', 'price_min', 'price_max', 'bedrooms', 'bathrooms', 'status', 'is_featured')
+    list_filter = ('status', 'location', 'property_type', 'listing_type', 'furnishing')
+    search_fields = ('title', 'Address', 'location__name', 'description')
+    inlines = [PropertyImageInline, NearbyPlaceInline]
+    readonly_fields = ('date_posted',)
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('title', 'description', 'property_type', 'listing_type', 'status', 'is_featured')
+        }),
+        ('Pricing & Area', {
+            'fields': ('price_min', 'price_max', 'area_sqft')
+        }),
+        ('Details', {
+            'fields': ('bedrooms', 'bathrooms', 'furnishing', 'amenities')
+        }),
+        ('Location Info', {
+            'fields': ('Address', 'location')
+        }),
+        ('Media', {
+            'fields': ('video_url', 'highlights')
+        }),
+        ('Ownership & Posting', {
+            'fields': ('user', 'owner', 'date_posted')
+        }),
+    )
 
+# Optional: You can register these separately as well if needed
+@admin.register(PropertyImage)
+class PropertyImageAdmin(admin.ModelAdmin):
+    list_display = ('property',  'image')
+    list_filter = ( 'property',)
+    readonly_fields = ('image',)
 
-admin.site.register(Property, PropertyAdmin)  # Register the Property model
+@admin.register(NearbyPlace)
+class NearbyPlaceAdmin(admin.ModelAdmin):
+    list_display = ('property', 'name', 'distance_km', 'place_type')
+    list_filter = ('place_type',)
+    search_fields = ('name', 'property__title')
 
 # TenantProfile Admin
 class TenantProfileAdmin(admin.ModelAdmin):

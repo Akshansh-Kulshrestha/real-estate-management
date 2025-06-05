@@ -173,12 +173,16 @@ class Amenity(models.Model):
     def __str__(self):
         return self.name
     
-#Property
 class Property(models.Model):
     STATUS_CHOICES = (
         ('available', 'Available'),
         ('sold', 'Sold'),
         ('rented', 'Rented'),
+    )
+
+    LISTING_TYPE_CHOICES = (
+        ('sale', 'Sale'),
+        ('rent', 'Rent'),
     )
 
     title = models.CharField(max_length=200)
@@ -197,13 +201,19 @@ class Property(models.Model):
     Address = models.CharField(max_length=100)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     amenities = models.ManyToManyField(Amenity, blank=True)
-    user = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'roles__name': ['Agent', 'Buyer', 'Admin' ]})
+    user = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+                             limit_choices_to={'roles__name__in': ['Agent', 'Buyer', 'Admin']})
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_properties')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     is_featured = models.BooleanField(default=False)
     date_posted = models.DateTimeField(default=timezone.now)
 
-    buyer = models.ForeignKey(BuyerProfile, on_delete=models.CASCADE, blank=True, null=True, related_name='purchased_properties')
-    seller = models.ForeignKey(SellerProfile, on_delete=models.CASCADE, blank=True, null=True, related_name='sold_properties')
+    # NEW FIELDS
+    video_url = models.URLField(blank=True, null=True)  # for video tours
+    highlights = models.TextField(blank=True, null=True)  # to list project highlights
+    listing_type = models.CharField(max_length=10, choices=LISTING_TYPE_CHOICES, default='sale')  # sale/rent
+
+
     class Meta:
         permissions = [
             ('can_approve_property', 'Can approve property'),
@@ -213,6 +223,25 @@ class Property(models.Model):
 
     def __str__(self):
         return self.title
+
+class NearbyPlace(models.Model):
+    PLACE_TYPE_CHOICES = (
+        ('school', 'School'),
+        ('college', 'College'),
+        ('hospital', 'Hospital'),
+        ('market', 'Market'),
+        ('park', 'Park'),
+    )
+
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='nearby_places')
+    name = models.CharField(max_length=100)
+    distance_km = models.DecimalField(max_digits=4, decimal_places=2)
+    place_type = models.CharField(max_length=20, choices=PLACE_TYPE_CHOICES)
+
+    def __str__(self):
+        return f"{self.name} ({self.distance_km} km)"
+
+
     
 #  Propert Image   
 class PropertyImage(models.Model):

@@ -36,8 +36,23 @@ class AgentForm(forms.ModelForm):
 class PropertyForm(forms.ModelForm):
     class Meta:
         model = Property
-        fields = ['title', 'description', 'price_min','price_max', 'area_sqft', 'furnishing', 'bathrooms', 'bedrooms', 'location', 'Address', 'amenities', 'property_type' ]
+        fields = [
+            'title', 'description', 'price_min', 'price_max', 'area_sqft',
+            'furnishing', 'bathrooms', 'bedrooms', 'location', 'Address',
+            'amenities', 'property_type', 'owner',
+            'video_url', 'highlights', 'listing_type'
+        ]
 
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(PropertyForm, self).__init__(*args, **kwargs)
+
+        if user and user.is_superuser:
+            self.fields['owner'].queryset = User.objects.filter(roles__name__in=['Agent', 'Seller']).distinct()
+        else:
+            self.fields['owner'].widget = forms.HiddenInput()
+            self.fields['owner'].required = False
 class UserForm(forms.ModelForm):
 
     class Meta: 
@@ -50,5 +65,8 @@ class LocationForm(forms.ModelForm):
         model=Location
         fields = '__all__'
 
-
+class NearbyForm(forms.ModelForm):
+    class Meta:
+        model = NearbyPlace
+        fields = ['name', 'distance_km', 'place_type'] 
 

@@ -1,0 +1,32 @@
+<form method="post" id="addNearbyForm">
+  {% csrf_token %}
+                   <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input class="form-control" type="text" placeholder="name" name="{{form.name.name}}" value="{{form.name.value}}" id="{{name}}"/>
+                          </div>
+                        </div>
+                         <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Distance in KM</label>
+                            <input class="form-control" type="number" placeholder="name" name="{{form.distance_km.name}}" value="{{form.distance_km.value}}" id="{{distance_km}}"/>
+                          </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                          <div class="mb-3">
+                            <label for="furnishing" class="form-label">Place Type</label>
+                            <select class="form-control" name="{{ form.place_type.name }}" id="{{ form.place_type.id_for_label }}">
+                              {% for val, label in form.place_type.field.choices %}
+                                <option value="{{ val }}" {% if form.place_type.value == val %}selected{% endif %}>
+                                  {{ label }}
+                                </option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        </div>
+  <input type="hidden" name="{{form.property_id.name}}" value="{{ property_id }}">
+
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-success">Add Nearby</button>
+  </div>
+</form>

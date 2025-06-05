@@ -2,6 +2,7 @@
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 from .models import User, Role, AgentProfile, BuyerProfile, SellerProfile, TenantProfile
+from django.db.models.signals import post_save
 
 @receiver(m2m_changed, sender=User.roles.through)
 def create_profile_on_role_assignment(sender, instance, action, pk_set, **kwargs):
@@ -39,3 +40,12 @@ def create_profile_on_role_assignment(sender, instance, action, pk_set, **kwargs
                     'address': 'Default address'
                 }
             )
+
+
+@receiver(post_save, sender=User)
+def assign_default_roles(sender, instance, created, **kwargs):
+    if created:
+        if not instance.is_superuser and not instance.is_staff:
+            buyer_role = Role.objects.get(name='Buyer')
+            seller_role = Role.objects.get(name='Seller')
+            instance.roles.add(buyer_role, seller_role)

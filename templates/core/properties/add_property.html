@@ -127,6 +127,35 @@
                         </div>
                       </div>
 
+
+
+
+                      <div class="col-sm-6 col-md-3">
+                        <div class="mb-3">
+                          <label for="{{ form.video_url.id_for_label }}" class="form-label">Video URL</label>
+                          <input class="form-control" type="url" name="{{ form.video_url.name }}" id="{{ form.video_url.id_for_label }}" 
+                            value="{{ form.video_url.value|default_if_none:'' }}" placeholder="https://example.com/video">
+                        </div>
+                      </div>
+
+                      <div class="col-sm-6 col-md-4">
+                        <div class="mb-3">
+                          <label for="{{ form.highlights.id_for_label }}" class="form-label">Highlights</label>
+                          <input class="form-control" name="{{ form.highlights.name }}" id="{{ form.highlights.id_for_label }}" rows="3" placeholder="Key features or highlights..."></input>
+                        </div>
+                      </div>
+
+                      <div class="col-sm-6 col-md-1">
+                        <div class="mb-3">
+                          <label for="{{ form.listing_type.id_for_label }}" class="form-label">Listing Type</label>
+                          <select class="form-control" name="{{ form.listing_type.name }}" id="{{ form.listing_type.id_for_label }}">
+                            {% for val, label in form.listing_type.field.choices %}
+                              <option value="{{ val }}" {% if form.listing_type.value == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+
                         <div class="col-sm-6 col-md-4">
                           <div class="mb-3">
                             <label class="form-label">Address</label>
@@ -148,7 +177,24 @@
                           </select>
                         </div>
                       </div>
-
+{% if request.user.is_superuser %}
+  <div class="col-sm-6 col-md-4">
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.owner.id_for_label }}">Owner (Agent or Seller)</label>
+                          <select class="form-control" name="{{ form.owner.name }}" id="owner-select">
+                            <option value="">Owner</option>
+                            {% for val, label in form.owner.field.choices %}
+                              <option value="{{ val }}" {% if val == form.owner.value %}selected{% endif %}>
+                                {{ label }}
+                              </option>
+                            {% endfor %}
+                          </select>
+      {% if form.owner.errors %}
+        <div class="text-danger">{{ form.owner.errors }}</div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
                         <div class="col-sm-6 col-md-3">
                         <div class="mb-3">
                         <label for="property_images" class="form-label d-flex justify-content-between align-items-center">
@@ -178,8 +224,9 @@
             </div>
           </div>
         </div>
+        </div>
         
-        <script>
+<script>
           document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('propertyForm');
             const goBackBtn = document.getElementById('goBackBtn');
@@ -288,8 +335,17 @@
       width: '100%'
     });
   });
+
+  $(document).ready(function() {
+    $('#amenities-select').select2({
+      placeholder: "Select amenities",
+      allowClear: true,
+      width: '100%'
+    });
+  });
+
 </script>
-
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 {% endblock %}

@@ -1,0 +1,25 @@
+value,label
+apartment,Apartment
+villa,Villa
+independent_house,Independent House
+studio,Studio
+penthouse,Penthouse
+bungalow,Bungalow
+farmhouse,Farmhouse
+duplex,Duplex
+row_house,Row House
+plot,Residential Plot
+commercial_office,Commercial Office Space
+commercial_shop,Commercial Shop
+commercial_showroom,Commercial Showroom
+warehouse,Warehouse
+factory,Factory
+industrial_land,Industrial Land
+retail_space,Retail Space
+agricultural_land,Agricultural Land
+guest_house,Guest House
+hostel,Hostel
+resort,Resort
+service_apartment,Service Apartment
+co_working_space,Co-working Space
+land,Land

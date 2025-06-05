@@ -823,7 +823,7 @@ a.uk-link-reset {
 .uk-list-striped>:nth-of-type(odd),
 .uk-table-striped tbody tr:nth-of-type(odd),
 .uk-table-striped>tr:nth-of-type(odd) {
-    background: #f8f8f8;
+    background: #0F2F2C;
     border-top: 1px solid #e5e5e5;
     border-bottom: 1px solid #e5e5e5
 }

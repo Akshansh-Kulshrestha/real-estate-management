@@ -1,6 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% load currency_filter %}
+{% load roles_extras %}
 
 {% block property_list %}
 <style>
@@ -98,6 +99,7 @@
   }
 </style>
 
+<div style="background-color: #ffffff; padding: 4rem;">
 <div class="container-fluid">
   <div class="page-title mb-4">
     <h2>Properties</h2>
@@ -110,20 +112,31 @@
       <a href="#">  <img src="{% static 'images/images.webp' %}" alt="Property Image" /> </a>
         <div class="card-content1">
           <div class="price1">{{ pro.price_min|inr_format }} - {{ pro.price_max|inr_format }}</div>
-          <a href="#"><div class="title1">{{ pro.title }}</div></a>
-          <div class="subtitle1">{{ pro.property_type }}</div>
+          <a href="{%url 'property_detail' property.id %}"><div class="title1">{{ pro.title }}</div></a>
+          <div class="subtitle1">{{ pro.area_sqft }} sqft.</div>
           <div class="details1">{{ pro.property_type }} • {{ pro.location }}</div>
           <div class="footer1">
             <div class="seller-info1">
-              <img src="{% static 'images/logo/logo1.png' %}" alt="Seller Logo" />
-              <div class="seller-name1">Abhiyant infrab...</div>
+{% if pro.owner.image %}
+    <img src="{{ pro.owner.image.url }}" alt="Owner Image">
+{% else %}
+    <img src="{% static 'images/logo/logo1.png' %}" alt="Default Image">
+{% endif %}               
+                 {% if pro.owner|has_role:"Agent" %}
+                  <div class="seller-name1">Agent: {{ pro.owner.username }}</div>
+                {% else %}
+                  <div class="seller-name1">Seller: {{ pro.owner.username }}</div>
+                {% endif %}
             </div>
-            <button class="contact-btn1">Contact</button>
+            <a href="tel:{{ pro.owner.phone }}">
+              <button class="contact-btn1">Call</button>
+            </a>
           </div>
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
+</div>
 </div>
 {% endblock %}

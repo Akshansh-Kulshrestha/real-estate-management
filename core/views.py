@@ -292,37 +292,22 @@
 #---------------------------------------------------------------------------------------#
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, permission_required,user_passes_test
-from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
+from django.contrib.auth.decorators import login_required,user_passes_test
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseForbidden
 from .models import *
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
 from .forms import *
-from django.views import View
-from django.core.mail import send_mail
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
 from django.views.decorators.csrf import csrf_protect
 from datetime import timedelta
 from django.utils import timezone
-from django.db.models import Count
 from django.utils.timezone import now
 from django.contrib.auth.views import PasswordResetView
 from django.contrib.auth.models import User
-from django.urls import reverse_lazy
-from django import forms
-
 
 User = get_user_model()
-
-# views.py
-
 
 
 
@@ -440,12 +425,9 @@ def add_property_to_sale(request, property_id):
 
 
 # USER DASHBOARD
-@login_required
 def dashboard(request):
-    roles = request.user.roles.all()
-    property = Property.objects.prefetch_related('images').all()
-    print(property)
-    return render(request, 'core/index1.html', {'username': request.user.username, 'roles': roles, 'property' : property})
+    property = Property.objects.all()
+    return render(request, 'core/landing-page.html', {'username': request.user.username, 'property' : property})
 
 
 def is_admin(user):
@@ -469,7 +451,7 @@ def admin_dashboard(request):
     width_total_users = total_users * 10
     total_properties= Property.objects.count()
     width_total_properties= total_properties * 10
-    total_agents = AgentProfile.objects.count()
+    total_agents = User.objects.filter(roles__name='Agent').distinct().count()
     width_total_agents = total_agents * 10
     total_properties_sold = Property.objects.filter(status='sold').count()
     width_total_properties_sold = total_properties_sold * 10
@@ -497,28 +479,31 @@ def admin_dashboard(request):
     
     return render(request, 'core/admin_dashboard.html', context)
 
-# Check for admin
 def is_admin(user):
-    return user.is_superuser  # or however you define admin
-
+    return user.is_superuser
 #-----------Agent Actions----------------#
 
 @login_required
 @user_passes_test(is_admin)
 def add_agent(request):
-    agent = User.objects.filter(roles__name='Agent')
-    print(agent)
+    existing_agents = User.objects.filter(roles__name='Agent')
+
     if request.method == 'POST':
         form = AgentForm(request.POST, request.FILES)
-
         if form.is_valid():
-            user = form.save()
-            agent_role = get_object_or_404(Role, name='Agent')  # Get the Role, not UserRole
+            user = form.save()  # Save the new user
+
+            # Assign the 'Agent' role
+            agent_role = get_object_or_404(Role, name='Agent')
             UserRole.objects.get_or_create(user=user, role=agent_role)
+
+            # No need to manually trigger the signal – it will run automatically
             return redirect('admin_dashboard')
     else:
         form = AgentForm()
-    return render(request, 'core/agents/add_agent.html', {'form': form, 'agent':agent})
+
+    return render(request, 'core/agents/add_agent.html', {'form': form, 'agent': existing_agents})
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -530,7 +515,7 @@ def edit_agent(request, user_id):
     if form.is_valid():
         form.save()
         return redirect('admin_dashboard')
-    return render(request, 'core/agents/edit_agent.html', {'form': form})
+    return render(request, 'core/agents/edit_agent.html', {'form': form, 'agent':agent})
 
 @login_required
 @user_passes_test(is_admin)
@@ -540,59 +525,86 @@ def delete_agent(request, user_id):
     return redirect('admin_dashboard')
 
 #-----------Property Actions----------------#
+def is_admin_or_seller_or_agent(user):
+    return user.is_superuser or user.has_role('Seller') or user.has_role('Agent')
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.contrib import messages
 
 @login_required
-@user_passes_test(is_admin)
 def add_property(request):
     if request.method == 'POST':
-        form = PropertyForm(request.POST, request.FILES)
+        form = PropertyForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
-            property_obj = form.save()
+            property_instance = form.save(commit=False)
 
-            # Save uploaded images
+            if request.user.is_superuser:
+                # Admin must explicitly assign an owner
+                if not property_instance.owner:
+                    return HttpResponseBadRequest("Admin must select an owner.")
+            else:
+                # For non-admins, assign current user as owner and user
+                property_instance.owner = request.user
+                property_instance.user = request.user
+
+            property_instance.save()
+            form.save_m2m()
+
+            # Save uploaded images from input named 'images'
             for img in request.FILES.getlist('images'):
-                PropertyImage.objects.create(property=property_obj, image=img)
+                PropertyImage.objects.create(property=property_instance, image=img)
 
-            messages.success(request, 'Property added successfully.')
-            return redirect('admin_dashboard')
+            messages.success(request, "Property added successfully.")
+            return redirect('property_list')
     else:
-        form = PropertyForm()
+        form = PropertyForm(user=request.user)
 
-    return render(request, 'core/properties/add_property.html', {
-        'form': form,
-    })
+    return render(request, 'core/properties/add_property.html', {'form': form})
 
 
 @login_required
-@user_passes_test(is_admin)
 def edit_property(request, pk):
     property_obj = get_object_or_404(Property, pk=pk)
 
-    if request.method == 'POST':
-        # Handle deletion of images
-        images_to_delete = request.POST.getlist('delete_images')
-        for img_id in images_to_delete:
-            PropertyImage.objects.filter(id=img_id, property=property_obj).delete()
+    # Permissions: only owner or superuser can edit
+    if not request.user.is_superuser and property_obj.owner != request.user:
+        return HttpResponseForbidden("You are not allowed to edit this property.")
 
-        form = PropertyForm(request.POST, request.FILES, instance=property_obj)
+    if request.method == 'POST':
+        # Delete selected images (IDs come from 'delete_images' checkboxes)
+        images_to_delete = request.POST.getlist('delete_images')
+        PropertyImage.objects.filter(id__in=images_to_delete, property=property_obj).delete()
+
+        form = PropertyForm(request.POST, request.FILES, instance=property_obj, user=request.user)
         if form.is_valid():
-            form.save()
+            property_instance = form.save(commit=False)
+
+            if not request.user.is_superuser:
+                # Prevent non-admins from changing owner or user fields
+                property_instance.owner = request.user
+                property_instance.user = request.user
+
+            property_instance.save()
+            form.save_m2m()
 
             # Save newly uploaded images
             for img in request.FILES.getlist('images'):
-                PropertyImage.objects.create(property=property_obj, image=img)
+                PropertyImage.objects.create(property=property_instance, image=img)
 
             messages.success(request, 'Property updated successfully.')
-            return redirect('edit_property', pk=property_obj.pk)
+            return redirect('edit_property', pk=property_instance.pk)
     else:
-        form = PropertyForm(instance=property_obj)
+        form = PropertyForm(instance=property_obj, user=request.user)
 
     property_images = property_obj.images.all()
 
     return render(request, 'core/properties/edit_property.html', {
         'form': form,
         'property': property_obj,
-        'images': property_images
+        'images': property_images,
     })
 
 
@@ -600,7 +612,6 @@ def edit_property(request, pk):
 
 
 @login_required
-@user_passes_test(is_admin)
 def delete_property(request, pk):
     property = get_object_or_404(Property, pk=pk)
     property.delete()
@@ -624,17 +635,6 @@ def property_list(request):
     properties = Property.objects.all()
     return render(request, 'core/properties/property_list.html', {'properties': properties})
 
-# SINGLE PROPERTY DETAIL
-@login_required
-def property_detail(request, pk):
-    prop = get_object_or_404(Property, pk=pk)
-    return JsonResponse({
-        "title": prop.title,
-        "price_min": float(prop.price_min),
-        "price_max": float(prop.price_max),
-        "location": str(prop.location),
-        "agent": prop.agent.username
-    })
 
 
 
@@ -738,3 +738,25 @@ def get_pincodes(request):
     area = request.GET.get('area')
     pincodes = Location.objects.filter(state=state, city=city, area=area).values_list('pincode', flat=True).distinct()
     return JsonResponse({'pincodes': list(pincodes)})
+
+
+def add_nearby(request):
+    if request.method == 'POST':
+        form = NearbyForm(request.POST)
+        if form.is_valid():
+            nearby = form.save(commit=False)
+            property_id = request.POST.get('property_id')
+            from .models import Property  # adjust if needed
+            nearby.property = Property.objects.get(id=property_id)
+            nearby.save()
+            return JsonResponse({'success': True, 'id': nearby.id, 'name': nearby.name})
+        return JsonResponse({'success': False, 'errors': form.errors})
+
+    property_id = request.GET.get('property_id')  # passed via ?property_id=123 in URL
+    form = NearbyForm()
+    return render(request, 'core/properties/nearby.html', {'form': form, 'property_id': property_id})
+
+# SINGLE PROPERTY DETAIL
+def property_detail(request, pk):
+    properties = Property.objects.all()
+    return render(request, 'home/property_detail.html', {'property': properties})
