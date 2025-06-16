@@ -758,5 +758,27 @@ def add_nearby(request):
 
 # SINGLE PROPERTY DETAIL
 def property_detail(request, pk):
-    properties = Property.objects.all()
-    return render(request, 'home/property_detail.html', {'property': properties})
+    property = get_object_or_404(Property, pk=pk)
+    
+    key_features = [
+        ("Property Type", property.property_type.name),
+        ("Bedrooms", property.bedrooms),
+        ("Bathrooms", property.bathrooms),
+        ("Area", f"{property.area_sqft} sq ft"),
+        ("Furnishing", property.furnishing.capitalize()),
+    ]
+
+    similar_properties = Property.objects.filter(
+        location=property.location
+    ).exclude(id=property.id)[:5]
+
+    context = {
+        "property": property,
+        "key_features": key_features,
+        "similar_properties": similar_properties,
+        "nav_links": ["Buy", "Rent", "Commercial", "Plots", "PG/Co-living", "Services"],
+        "footer_links": ["About", "Contact", "Privacy Policy", "Terms of Service"],
+        "current_year": timezone.now().year,
+    }
+
+    return render(request, "core/properties/property_detail.html", context)

@@ -84,7 +84,6 @@ class PropertyImageInline(admin.TabularInline):
     model = PropertyImage
     extra = 1  # Number of empty forms to show
     fields = ('image',)
-    readonly_fields = ('image',)
 
 # Inline for Nearby Places
 class NearbyPlaceInline(admin.TabularInline):
@@ -125,7 +124,6 @@ class PropertyAdmin(admin.ModelAdmin):
 class PropertyImageAdmin(admin.ModelAdmin):
     list_display = ('property',  'image')
     list_filter = ( 'property',)
-    readonly_fields = ('image',)
 
 @admin.register(NearbyPlace)
 class NearbyPlaceAdmin(admin.ModelAdmin):

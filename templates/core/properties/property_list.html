@@ -5,12 +5,6 @@
 
 {% block property_list %}
 <style>
-  body1 {
-    font-family: Arial, sans-serif;
-    background: #f0f2f5;
-    padding: 40px;
-  }
-
   .card1 {
     background-color: #fff;
     border-radius: 16px;
@@ -20,78 +14,42 @@
     margin-bottom: 30px;
   }
 
-  .card1 img {
-    width: 100%;
+  .carousel-inner img {
     height: 230px;
     object-fit: cover;
+    width: 100%;
   }
 
   .card-content1 {
     padding: 16px;
   }
 
-  .price1 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .title1 {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 4px;
-    color: #000;
-  }
-
-  .subtitle1 {
-    font-size: 14px;
-    color: #777;
-    margin-top: 2px;
-  }
-
-  .details1 {
-    font-size: 14px;
-    color: #555;
-    margin-top: 10px;
-  }
+  .price1 { font-size: 16px; font-weight: 600; color: #333; }
+  .title1 { font-size: 20px; font-weight: bold; margin-top: 4px; color: #000; }
+  .subtitle1 { font-size: 14px; color: #777; margin-top: 2px; }
+  .details1 { font-size: 14px; color: #555; margin-top: 10px; }
 
   .footer1 {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 16px;
+    display: flex; justify-content: space-between; align-items: center; margin-top: 16px;
   }
 
   .seller-info1 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex; align-items: center; gap: 8px;
   }
 
   .seller-info1 img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
+    width: 24px; height: 24px; object-fit: contain;
   }
 
   .seller-name1 {
-    font-size: 14px;
-    color: #333;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 120px;
+    font-size: 14px; color: #333; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; max-width: 120px;
   }
 
   .contact-btn1 {
-    background-color: #d1fae5;
-    color: #065f46;
-    border: none;
-    padding: 6px 12px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 9999px;
-    cursor: pointer;
+    background-color: #d1fae5; color: #065f46; border: none;
+    padding: 6px 12px; font-size: 14px; font-weight: 600;
+    border-radius: 9999px; cursor: pointer;
   }
 
   .contact-btn1:hover {
@@ -100,43 +58,73 @@
 </style>
 
 <div style="background-color: #ffffff; padding: 4rem;">
-<div class="container-fluid">
-  <div class="page-title mb-4">
-    <h2>Properties</h2>
-  </div>
+  <div class="container-fluid">
+    <div class="page-title mb-4">
+      <h2>Properties</h2>
+    </div>
 
-  <div class="row">
-    {% for pro in properties %}
-    <div class="col-md-4 col-lg-3 col-xl-3">
-      <div class="card1">
-      <a href="#">  <img src="{% static 'images/images.webp' %}" alt="Property Image" /> </a>
-        <div class="card-content1">
-          <div class="price1">{{ pro.price_min|inr_format }} - {{ pro.price_max|inr_format }}</div>
-          <a href="{%url 'property_detail' property.id %}"><div class="title1">{{ pro.title }}</div></a>
-          <div class="subtitle1">{{ pro.area_sqft }} sqft.</div>
-          <div class="details1">{{ pro.property_type }} • {{ pro.location }}</div>
-          <div class="footer1">
-            <div class="seller-info1">
-{% if pro.owner.image %}
-    <img src="{{ pro.owner.image.url }}" alt="Owner Image">
-{% else %}
-    <img src="{% static 'images/logo/logo1.png' %}" alt="Default Image">
-{% endif %}               
-                 {% if pro.owner|has_role:"Agent" %}
+    <div class="row">
+      {% for pro in properties %}
+      <div class="col-md-4 col-lg-3 col-xl-3">
+        <div class="card1">
+          
+          <!-- Image Carousel -->
+          <div id="carousel-{{ forloop.counter }}" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+              {% for image in pro.images.all %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ image.image.url }}" alt="Property Image {{ forloop.counter }}">
+              </div>
+              {% comment %} {% empty %}
+              <div class="carousel-item active">
+                <img src="{% static 'images/images.webp' %}" alt="Default Image">
+              </div> {% endcomment %}
+              {% endfor %}
+            </div>
+            {% if pro.images.count > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ forloop.counter }}" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ forloop.counter }}" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+            {% endif %}
+          </div>
+
+          <!-- Property Details -->
+          <div class="card-content1">
+            <div class="price1">{{ pro.price_min|inr_format }} - {{ pro.price_max|inr_format }}</div>
+            <a href="{% url 'property_detail' pro.id %}">
+              <div class="title1">{{ pro.title }}</div>
+            </a>
+            <div class="subtitle1">{{ pro.area_sqft }} sqft.</div>
+            <div class="details1">{{ pro.property_type }} • {{ pro.location }}</div>
+
+            <div class="footer1">
+              <div class="seller-info1">
+                {% if pro.owner.image %}
+                  <img src="{{ pro.owner.image.url }}" alt="Owner Image">
+                {% else %}
+                  <img src="{% static 'images/logo/logo1.png' %}" alt="Default Owner Image">
+                {% endif %}
+                {% if pro.owner|has_role:"Agent" %}
                   <div class="seller-name1">Agent: {{ pro.owner.username }}</div>
                 {% else %}
                   <div class="seller-name1">Seller: {{ pro.owner.username }}</div>
                 {% endif %}
+              </div>
+              <a href="tel:{{ pro.owner.phone }}">
+                <button class="contact-btn1">Call</button>
+              </a>
             </div>
-            <a href="tel:{{ pro.owner.phone }}">
-              <button class="contact-btn1">Call</button>
-            </a>
+
           </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
-</div>
 </div>
 {% endblock %}

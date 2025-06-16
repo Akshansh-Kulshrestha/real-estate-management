@@ -1,46 +1,117 @@
 {% extends "core/base.html" %}
-{%block property_details%}
-  <div class="container">
-    <header>
-      <h1>JVJ Silicon Valley <span class="rera">RERA</span></h1>
-      <p class="builder">By JVJ DREAM DEVELOPERS LLP</p>
-      <p class="address">Xaviers Arcade 1, Jagatpura, NH - 8 Jaipur, Jaipur</p>
-    </header>
+{% load static %}
+{% load currency_filter %}
+{% load math_filter %}
 
-    <section class="main-content">
-      <div class="images">
-        <img src="ac4cecac-d162-4bfb-b739-d332cec57d4e.png" alt="JVJ Silicon Valley Cover" class="cover-image">
-        <div class="video-tour">
-          <button onclick="alert('Playing Project Tour')">▶ Project Tour</button>
-        </div>
-        <div class="image-count">+26 more</div>
-      </div>
+{% block property_details %}
+<div class="min-h-screen bg-gray-50 text-gray-800 font-sans">
 
-      <div class="price-contact">
-        <h2>₹99.76 L – 1.26 Cr <span class="per-sqft">| ₹5.7 K/sq.ft</span></h2>
-        <p>EMI starts at ₹49.53 K</p>
-        <button class="contact-btn" onclick="alert('Contacting Seller...')">Contact Seller</button>
-      </div>
-
-      <div class="details">
-        <div>3, 4 BHK Apartments</div>
-        <div>Possession Starts: <strong>Jun, 2028</strong></div>
-        <div>Avg. Price: ₹5.7 K/sq.ft</div>
-        <div>Size: 1750 - 2206 sq.ft</div>
-      </div>
-    </section>
-
-    <section class="why">
-      <h3>Why JVJ Silicon Valley?</h3>
-      <ul>
-        <li>Nearby Schools - Jayshree Periwal Public School (3.1 km), SRN Intl School (1.5 km)</li>
-        <li>Nearby Colleges - SKIT College (3 km), Gyan Vihar (2.4 km)</li>
-      </ul>
-    </section>
-
-    <footer>
-      <p>Contact Seller: Abhiyant Infrabuild Pvt Ltd | +91 93156XXXXX</p>
-    </footer>
+  <!-- Breadcrumb -->
+  <div class="px-4 pt-5 text-sm text-green-700 max-w-6xl mx-auto">
+    <a href="/">Home</a> / 
+    <a href="#">{{ property.location }}</a> / 
+    <span class="text-gray-900 font-medium">{{ property.title }}</span>
   </div>
 
-  {% endblock %}
+  <!-- Hero Image -->
+  <div class="px-4 pt-4 max-w-6xl mx-auto">
+    <div class="aspect-video bg-center bg-cover rounded-xl shadow-md"
+      style="background-image: url(
+        {% if property.images.all %}
+          '{{ property.images.first.image.url }}'
+        {% else %}
+          '{% static 'images/default-cover.jpg' %}'
+        {% endif %}
+      );">
+    </div>
+  </div>
+
+  <!-- Property Summary -->
+  <div class="px-4 py-6 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900">{{ property.title }}</h1>
+    <p class="mt-1 text-green-700 text-sm">
+      {{ property.area_sqft }} sq ft · {{ property.bedrooms }} Beds · {{ property.bathrooms }} Baths
+      {% if property.balcony %} · {{ property.balcony }} Balcony{% endif %}
+    </p>
+    <h2 class="mt-6 text-xl font-semibold">About the Property</h2>
+    <p class="mt-2 text-gray-700 leading-relaxed">{{ property.description }}</p>
+  </div>
+
+  <!-- Key Features -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 py-4 max-w-6xl mx-auto text-sm">
+    {% for label, value in key_features %}
+      <div class="border-t pt-3">
+        <p class="text-green-700 font-medium">{{ label }}</p>
+        <p class="text-gray-900">{{ value }}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Gallery -->
+  <div class="px-4 py-6 max-w-6xl mx-auto">
+    <h2 class="text-xl font-semibold mb-4">Gallery</h2>
+    <div class="flex flex-wrap gap-4">
+      {% for img in property.images.all|slice:":5" %}
+        <a href="{{ img.image.url }}" @click.prevent="lightboxImage = '{{ img.image.url }}'; showLightbox = true;" class="w-40 h-28 bg-cover bg-center rounded-lg shadow-sm" style="background-image: url('{{ img.image.url }}');"></a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Agent Info & Price -->
+  <div class="px-4 py-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+    <div>
+      <h2 class="text-xl font-semibold mb-2">Contact Agent</h2>
+      <div class="flex items-center gap-4 bg-white p-4 rounded-md shadow-sm">
+        <img src="{% static 'images/default-avatar.png' %}" class="w-12 h-12 rounded-full object-cover" alt="Agent">
+        <div>
+          <p class="font-medium text-gray-900">{{ property.agent.name|default:"Urban Agent" }}</p>
+          <p class="text-sm text-gray-500">{{ property.agent.phone|default:"(+91) 9876543210" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-md shadow-md text-center">
+      <p class="text-sm text-gray-500">Listed Price</p>
+      <p class="text-3xl font-bold text-green-700 mt-2">
+        {{ property.price|currency_filter }}
+      </p>
+      <a href="#contact-form" class="mt-4 inline-block bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-800 transition">Enquire Now</a>
+    </div>
+  </div>
+
+  <!-- Contact Form -->
+  <div id="contact-form" class="px-4 py-10 max-w-4xl mx-auto">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Send a Message</h2>
+    <form method="post" class="grid grid-cols-1 gap-4 bg-white p-6 rounded-lg shadow-md">
+      {% csrf_token %}
+      <input type="text" name="name" placeholder="Your Name" class="border border-gray-300 px-4 py-2 rounded-md" required>
+      <input type="email" name="email" placeholder="Your Email" class="border border-gray-300 px-4 py-2 rounded-md" required>
+      <textarea name="message" rows="4" placeholder="Your Message" class="border border-gray-300 px-4 py-2 rounded-md" required></textarea>
+      <button type="submit" class="bg-green-700 text-white py-2 rounded-md hover:bg-green-800 transition">Send Inquiry</button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <footer class="text-center text-green-700 py-8 border-t mt-10">
+    <ul class="flex justify-center gap-6 mb-4 text-sm">
+      {% for link in footer_links %}
+        <li><a href="#" class="hover:underline">{{ link }}</a></li>
+      {% endfor %}
+    </ul>
+    <p class="text-xs">&copy; {{ current_year }} Urban Dwellings. All rights reserved.</p>
+  </footer>
+
+  <!-- Lightbox -->
+  <div x-data="{ showLightbox: false, lightboxImage: '' }" x-show="showLightbox" x-cloak
+       class="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="relative">
+      <button @click="showLightbox = false" class="absolute -top-4 -right-4 bg-white rounded-full p-1 text-black">&times;</button>
+      <img :src="lightboxImage" class="max-w-full max-h-screen rounded-lg" />
+    </div>
+  </div>
+
+</div>
+
+<!-- AlpineJS for lightbox -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}

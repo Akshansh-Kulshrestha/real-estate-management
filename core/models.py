@@ -246,7 +246,7 @@ class NearbyPlace(models.Model):
 #  Propert Image   
 class PropertyImage(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
-    image = models.FileField(upload_to='property_images/')  # using FileField instead of ImageField
+    image = models.ImageField(upload_to='property_images/')  # using FileField instead of ImageField
 
     def __str__(self):
         return f"Image for {self.property.title}"

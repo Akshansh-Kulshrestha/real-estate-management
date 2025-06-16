@@ -2,8 +2,8 @@ from django import template
 
 register = template.Library()
 
-@register.filter
-def inr_format(value):
+@register.filter(name='currency_filter')  # Registering with the correct name
+def currency_filter(value):
     try:
         value = float(value)
         if value >= 1_00_00_000:
